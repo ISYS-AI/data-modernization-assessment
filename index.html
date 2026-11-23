@@ -1,0 +1,844 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{box-sizing:border-box}body{margin:0;padding:0}img{max-width:100%}</style>
+<title>Data Modernization Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: navy masthead band, sticky step rail, single reading column for the survey; results open into an analytical canvas with tabs */
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --surface2:#EBEFF5; --ink:#0B1F3B; --muted:#55647C; --line:#D7DEE9;
+  --navy:#0B1F3B; --navy-ink:#F2F4F8; --navy-muted:#A9B6CB;
+  --gold:#C9A24B; --gold-ink:#83611A; --gold-soft:#F6EEDB;
+  --sel-bg:#0B1F3B; --sel-ink:#FFFFFF; --series:#24497F;
+  --p1:#24497F; --p2:#B8892E; --p3:#2B7A6A;
+  --crit:#B3261E; --high:#BF5A12; --med:#2D5FA3; --low:#287558; --na:#C9D1DD;
+  --font:"Carlito","Calibri","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#081427; --surface:#0E1E38; --surface2:#142A4C; --ink:#E6EBF3; --muted:#97A6BE; --line:#223A5E;
+  --navy:#040C1A; --navy-ink:#E6EBF3; --navy-muted:#8798B4;
+  --gold:#D6B25E; --gold-ink:#E0C27E; --gold-soft:#2A2516;
+  --sel-bg:#D6B25E; --sel-ink:#081427; --series:#8DB4EC;
+  --p1:#6E9BE0; --p2:#D6B25E; --p3:#55BBA4;
+  --crit:#F2786D; --high:#F0A15A; --med:#82AEEA; --low:#5FC79F; --na:#2A4268; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#081427; --surface:#0E1E38; --surface2:#142A4C; --ink:#E6EBF3; --muted:#97A6BE; --line:#223A5E;
+  --navy:#040C1A; --navy-ink:#E6EBF3; --navy-muted:#8798B4;
+  --gold:#D6B25E; --gold-ink:#E0C27E; --gold-soft:#2A2516;
+  --sel-bg:#D6B25E; --sel-ink:#081427; --series:#8DB4EC;
+  --p1:#6E9BE0; --p2:#D6B25E; --p3:#55BBA4;
+  --crit:#F2786D; --high:#F0A15A; --med:#82AEEA; --low:#5FC79F; --na:#2A4268; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance;line-height:1.15;margin:0}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.hint{font-size:13px;color:var(--muted)}
+
+.band{background:var(--navy);color:var(--navy-ink)}
+.band .wrap{padding-block:22px 20px;display:flex;flex-direction:column;gap:6px}
+.brand{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--navy-muted)}
+.brand b{color:var(--gold);letter-spacing:.2em;margin-right:6px}
+.band h1{font-size:clamp(24px,4.4vw,34px);font-weight:700}
+.band h1 span{color:var(--gold)}
+.band p{color:var(--navy-muted);max-width:66ch;font-size:15px}
+
+.rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.rail .wrap{display:flex;gap:6px;overflow-x:auto;padding-block:10px;scrollbar-width:thin}
+.chip{flex:0 0 auto;display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13px;white-space:nowrap;color:var(--muted)}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.chip.part .dot{background:var(--gold)} .chip.done .dot{background:var(--low)}
+.chip.on{background:var(--sel-bg);color:var(--sel-ink);border-color:var(--sel-bg)}
+.chip.on .dot{box-shadow:0 0 0 2px var(--sel-ink)}
+
+main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+main .wrap{padding-block:26px;display:flex;flex-direction:column;gap:22px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink);font-weight:700}
+.lead{color:var(--muted);max-width:70ch}
+.sample{background:var(--gold-soft);border:1px solid var(--gold);border-radius:var(--r);padding:10px 14px;font-size:14px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid21{display:grid;grid-template-columns:1.15fr 1fr;gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.panel h3{font-size:18px}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.steps li{display:grid;grid-template-columns:auto 1fr;gap:12px;font-size:15px}
+.steps .k{font-family:var(--mono);color:var(--gold-ink);font-size:13px;padding-top:2px}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 16px;font-weight:700;font-size:15px}
+.btn.primary{background:var(--sel-bg);color:var(--sel-ink);border-color:var(--sel-bg)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn.warn{border-color:var(--crit);color:var(--crit)}
+
+.form{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label,.field .lbl{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.02em}
+.field input,.field select,.field textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;font-size:16px}
+.field textarea{min-height:70px;resize:vertical}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.tog{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 12px;font-size:14px}
+.tog[aria-pressed="true"]{background:var(--sel-bg);color:var(--sel-ink);border-color:var(--sel-bg)}
+
+.step-head{display:flex;flex-direction:column;gap:10px}
+.step-head h2{font-size:clamp(24px,4vw,32px)}
+.refs{display:flex;flex-wrap:wrap;gap:6px}
+.ref{font-size:12px;border:1px solid var(--line);border-radius:4px;padding:2px 8px;color:var(--muted);background:var(--surface)}
+.ref.reg{border-color:color-mix(in srgb,var(--gold) 60%,var(--line));color:var(--gold-ink)}
+.why{border-left:3px solid var(--gold);background:var(--surface);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;font-size:15px}
+.why b{color:var(--gold-ink)}
+.who{font-size:14px;color:var(--muted)} .who b{color:var(--ink)}
+.legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 14px;font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.legend b{color:var(--ink)}
+.qs{display:flex;flex-direction:column;gap:14px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.q.answered{border-color:color-mix(in srgb,var(--gold) 55%,var(--line))}
+.qt{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:17px;font-weight:700}
+.qt .num{font-size:12px;color:var(--gold-ink);padding-top:4px}
+.anchors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-size:13.5px;color:var(--muted)}
+.anchors div{background:var(--surface2);border-radius:6px;padding:8px 10px}
+.anchors b{display:block;color:var(--ink);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.ev{font-size:13.5px;color:var(--muted)} .ev b{color:var(--ink)}
+.scale{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.sb{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.sb .num{font-size:17px}
+.sb small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.sb[aria-pressed="true"]{background:var(--sel-bg);border-color:var(--sel-bg);color:var(--sel-ink)}
+.sb[aria-pressed="true"] small{color:var(--sel-ink)}
+.alt{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.alt .tog{padding:5px 10px;font-size:13px}
+.alt .sep{width:1px;height:20px;background:var(--line)}
+.conf{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--muted)}
+.note{flex:1 1 220px;min-width:0;background:transparent;border:0;border-bottom:1px dashed var(--line);padding:6px 2px;font-size:14px}
+
+.navbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line)}
+.navbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-block:10px calc(10px + env(safe-area-inset-bottom,0px))}
+.prog{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;font-size:13px;color:var(--muted)}
+.bar{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold)}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{border:0;background:transparent;padding:10px 14px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--gold)}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:600}
+.kpi .v small{font-size:13px;color:var(--muted)}
+.kpi .l{font-size:13px;color:var(--muted)}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--font);font-size:13px}
+.lgd{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.lgd i{display:inline-block;width:14px;height:8px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.stage-pill{align-self:flex-start;font-weight:700;border-radius:999px;padding:4px 12px;font-size:14px}
+.gates{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.gates li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;font-size:14.5px}
+.gi{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--surface)}
+.pass{background:var(--low)} .partial{background:var(--high)} .fail{background:var(--crit)}
+.sev{display:inline-block;font-size:12px;font-weight:700;border-radius:4px;padding:2px 8px;white-space:nowrap}
+.sev.crit{color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,transparent)}
+.sev.high{color:var(--high);background:color-mix(in srgb,var(--high) 14%,transparent)}
+.sev.med{color:var(--med);background:color-mix(in srgb,var(--med) 14%,transparent)}
+.sev.low{color:var(--low);background:color-mix(in srgb,var(--low) 14%,transparent)}
+.sev.none{color:var(--muted);background:var(--surface2)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.c{text-align:center}
+td.wide{min-width:230px}
+.gapbar .track{position:relative;display:block;width:110px;height:8px;background:var(--surface2);border-radius:4px}
+.gapbar .cur{position:absolute;left:0;top:0;bottom:0;background:var(--series);border-radius:4px}
+.gapbar .tgt{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--gold);border-radius:2px}
+td select,.filters select{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.heat{display:grid;gap:6px}
+.hrow{display:grid;grid-template-columns:150px 1fr auto;gap:10px;align-items:center;font-size:14px}
+.hcells{display:flex;flex-wrap:wrap;gap:4px}
+.hc{width:30px;height:26px;border-radius:4px;display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--surface)}
+.hc.g0{background:var(--low)} .hc.g1{background:var(--med)} .hc.g2{background:var(--high)} .hc.g3{background:var(--crit)}
+.hc.nil{background:var(--surface2);color:var(--muted)} .hc.na{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.inits{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.init{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.init h3{font-size:17px}
+.init .row{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.init .row b{color:var(--ink);font-weight:700}
+.init ul{margin:0;padding-left:18px;font-size:14px;display:grid;gap:3px}
+.init .sub{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.arch ul,.lens ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:15px}
+.lens li b{color:var(--ink)}
+.qw{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.qw li{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:14.5px;align-items:start}
+.phases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.phase .w{font-family:var(--mono);font-size:12px;color:var(--gold-ink)}
+.phase ul{margin:0;padding-left:16px;font-size:14px;display:grid;gap:3px}
+.method dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:15px}
+.method dt{font-family:var(--mono);color:var(--gold-ink)}
+.method dd{margin:0}
+.disclaimer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;max-width:84ch}
+.empty{color:var(--muted);font-size:14px}
+textarea.copybox{width:100%;min-height:200px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;font-family:var(--mono);font-size:12px}
+details.panel summary{cursor:pointer;font-weight:700}
+
+@media (max-width:880px){
+  .grid2,.grid21,.inits{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .phases{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .form{grid-template-columns:1fr}
+  .anchors,.legend{grid-template-columns:1fr}
+  .sb small{display:none}
+  .sb{padding:10px 2px}
+  .qt{font-size:16px}
+  .q{padding:14px}
+  .hrow{grid-template-columns:1fr;gap:4px}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+
+<header class="band"><div class="wrap">
+  <div class="brand"><b>ISYS</b>Intelligent Systems · Data &amp; AI Advisory</div>
+  <h1>Data Modernization <span>&amp;</span> Agentic Readiness Assessment</h1>
+  <p>Data governance, master data, warehousing and lakehouse, scored against recognized frameworks and regional regulation, and turned into a prioritized gap matrix, initiative portfolio and 24-month roadmap.</p>
+</div></header>
+<nav class="rail" aria-label="Assessment steps"><div class="wrap" id="rail"></div></nav>
+<main><div class="wrap" id="main"></div></main>
+<footer class="navbar"><div class="wrap" id="navbar"></div></footer>
+
+<script>
+/* =================== reference content =================== */
+const LEVELS=["Not in place","Initial","Repeatable","Defined","Managed","Optimized"];
+const LEVEL_DEF=[
+ "Capability absent. No ownership, process or awareness.",
+ "Ad hoc and person-dependent. Reactive, undocumented, inconsistent.",
+ "Practiced in some units or projects. Partly documented, not enterprise-wide.",
+ "Documented, approved and applied enterprise-wide with clear roles. Auditable evidence exists.",
+ "Measured with KPIs or SLAs, monitored and largely automated. Exceptions are controlled.",
+ "Continuously improved, automated and embedded in daily operations. A benchmark for peers."];
+const LAYER={f:"Foundation",p:"Platform",v:"Value"};
+
+const DOMAINS=[
+{id:"STR",name:"Data Strategy & Operating Model",short:"Strategy",layer:"f",
+ who:"Executive sponsor, CDO, strategy office, finance",
+ intro:"Whether data and AI have a clear mandate, an accountable leader, funding tied to value, and the skills to deliver.",
+ why:"Agents act on behalf of the business. Without an owned strategy and funding model, agent programs stay as disconnected pilots that never reach production.",
+ refs:["DAMA-DMBOK2","EDM Council DCAM","NDMO: Data Value Realization"],
+ qs:[
+ {id:"STR-01",t:"Is there a documented enterprise data & AI strategy, approved by executive leadership and tied to business objectives?",l1:"No strategy; data work is driven by individual projects.",l3:"Approved strategy with principles and priorities, communicated across business units.",l5:"Refreshed yearly, linked to business KPIs and the AI roadmap, with tracked outcomes.",ev:"Strategy document, approval minutes, KPI scorecard",r:"Investment fragments into disconnected projects with no measurable return.",a:"Define an enterprise data & AI strategy with measurable outcomes and executive sponsorship.",e:"M",m:["DMBOK: Data Governance","DCAM: Strategy & Business Case"]},
+ {id:"STR-02",t:"Is there an accountable data leader (CDO/CDAO) and a defined operating model (central, federated or hub-and-spoke)?",l1:"No accountable data leader; responsibilities are scattered.",l3:"CDO or equivalent appointed with a documented operating model and RACI.",l5:"CDO has budget and board access; federated domain teams operate to shared standards.",ev:"Organization chart, CDO mandate, RACI",r:"No one is accountable for data risk or value, so decisions stall.",a:"Appoint an accountable data leader and formalize the operating model and RACI.",e:"L",m:["DCAM: Program & Funding","NDMO: Data Governance"]},
+ {id:"STR-03",t:"Are data initiatives prioritized through a funded portfolio with business cases and benefits tracking?",l1:"Funding is ad hoc, project by project.",l3:"Initiatives approved through a portfolio with business cases.",l5:"Benefits tracked and reported; funding reallocated based on realized value.",ev:"Portfolio register, business cases, benefits reports",r:"Data spend cannot be justified, so it is cut first under budget pressure.",a:"Set up a data & AI value portfolio with business cases and benefits tracking.",e:"M",m:["NDMO: Data Value Realization","DCAM: Program & Funding"]},
+ {id:"STR-04",t:"Is data and AI literacy measured and developed across business, technical and leadership roles?",l1:"No structured data or AI training.",l3:"Role-based training plan for business, technical and leadership audiences.",l5:"Literacy measured, built into onboarding and certification, including supervision of AI agents.",ev:"Training plan, curriculum, completion metrics",r:"Users misread data and over-trust AI outputs.",a:"Launch a role-based data & AI literacy program, including skills for supervising agents.",e:"M",m:["DCAM: Data culture","ISO/IEC 42001 A.4"]}]},
+{id:"GOV",name:"Data Governance",short:"Governance",layer:"f",
+ who:"CDO, data governance lead, compliance, risk, internal audit",
+ intro:"Decision rights, ownership, policies, critical data and regulatory control over the data the institution depends on.",
+ why:"Agents inherit every weakness in governance. Clear ownership, authoritative sources and enforced policy decide which data an agent may use, and who answers for the outcome.",
+ refs:["DAMA-DMBOK2","DCAM","CDMC","BCBS 239 (banks)","NDMO (KSA)"],
+ qs:[
+ {id:"GOV-01",t:"Is there an active data governance council with a charter, decision rights and a regular cadence?",l1:"No governance body, or it exists on paper only.",l3:"Council with charter and decision rights meets on a set cadence.",l5:"Decisions tracked, escalations resolved within SLA, reporting to executive committee and board.",ev:"Charter, meeting minutes, decision log",r:"Conflicting definitions and priorities are never resolved.",a:"Stand up a data governance council with a charter, decision rights and an escalation path.",e:"L",m:["DMBOK: Data Governance","DCAM: Data Governance","BCBS 239 P1","NDMO: Data Governance"]},
+ {id:"GOV-02",t:"Are data owners and data stewards formally assigned for critical data domains?",l1:"Ownership unclear; IT is assumed to own the data.",l3:"Owners and stewards named for critical domains with documented responsibilities.",l5:"Stewardship built into job descriptions and objectives, with measured performance.",ev:"Ownership register, role descriptions, stewardship KPIs",r:"Quality and access issues have no accountable person to fix them.",a:"Assign business data owners and stewards for every critical domain.",e:"L",m:["CDMC 2 Ownership","DCAM: Data Governance"]},
+ {id:"GOV-03",t:"Are core data policies and standards (quality, retention, classification, access, sharing) approved and enforced?",l1:"Policies missing or not enforced.",l3:"Core policy set approved, published and communicated.",l5:"Policies enforced through platform controls with automated compliance monitoring.",ev:"Policy documents, exception register, compliance reports",r:"Inconsistent data handling leads to regulatory findings.",a:"Publish a core data policy set and embed its enforcement in the platforms.",e:"M",m:["CDMC 1 Data Control Compliance","NDMO: Data Governance"]},
+ {id:"GOV-04",t:"Are critical data elements (CDEs) registered with owners, definitions and quality thresholds?",l1:"Critical data elements not identified.",l3:"CDE register with owners, definitions and thresholds for key reports.",l5:"CDEs linked end-to-end to lineage, quality scores and controls, reviewed periodically.",ev:"CDE register, report-to-CDE mapping",r:"Board and regulatory reports rest on unverified data.",a:"Build a critical data element register linked to regulatory reports and key KPIs.",e:"M",m:["BCBS 239 P3","DCAM: Data Control Environment"]},
+ {id:"GOV-05",t:"Are regulatory obligations (data protection, sector regulator, reporting rules) mapped to data controls and periodically attested?",l1:"Compliance handled reactively during audits.",l3:"Obligations mapped to data controls with named control owners.",l5:"Controls tested continuously with automated evidence and periodic attestation.",ev:"Obligations register, control library, attestation records",r:"Audit findings and penalties, especially as privacy enforcement begins.",a:"Map regulatory obligations to data controls and introduce periodic attestation.",e:"M",m:["CDMC 1 Data Control Compliance","BCBS 239 P1","PDPL"]},
+ {id:"GOV-06",t:"Are authoritative sources and provisioning points designated for key data, so consumers use approved sources only?",l1:"Consumers pull data from whichever copy they can reach.",l3:"Authoritative sources designated for critical domains and published in the catalog.",l5:"Use of non-authoritative sources detected and blocked or remediated automatically.",ev:"Authoritative source register, catalog entries",r:"Reports and agents quote unofficial copies and produce conflicting figures.",a:"Designate authoritative sources and provisioning points and publish them in the catalog.",e:"L",m:["CDMC 3 Authoritative Sources","DCAM: Data Architecture"]}]},
+{id:"MDM",name:"Master & Reference Data Management",short:"MDM",layer:"f",
+ who:"Customer and product data owners, operations, data stewards, enterprise architect",
+ intro:"Trusted golden records for customers, products, accounts and other core entities, and centrally managed reference data.",
+ why:"An agent that sees three versions of the same customer gives three different answers. Golden records make agent decisions consistent and defensible.",
+ refs:["DAMA-DMBOK2 (Reference & Master Data)","ISO 8000","NDMO: Reference & Master Data"],
+ qs:[
+ {id:"MDM-01",t:"Is there a trusted golden record for core entities such as customer, product, account, supplier or employee?",l1:"Each system holds its own version; no golden record.",l3:"Golden record for at least one core domain (usually customer) used by key processes.",l5:"Golden records for all core domains, trusted by business, risk and regulators.",ev:"MDM hub, match statistics, list of consuming systems",r:"Customer-facing agents give inconsistent answers; KYC and exposure views are incomplete.",a:"Implement MDM for the highest-value domain (usually customer/party) to create a golden record.",e:"H",m:["DMBOK: Reference & Master Data","NDMO: Reference & Master Data"]},
+ {id:"MDM-02",t:"Are match, merge, survivorship and de-duplication rules defined, tuned and governed by stewards?",l1:"Duplicates handled manually or not at all.",l3:"Documented rules with steward review queues for exceptions.",l5:"Rules tuned with measured precision and recall; steward workload tracked.",ev:"Rule specifications, steward queue metrics",r:"Duplicate customers distort counts and break AML and credit exposure views.",a:"Define and govern match, merge and survivorship rules with steward review workflows.",e:"M",m:["DMBOK: Reference & Master Data","ISO 8000"]},
+ {id:"MDM-03",t:"Is reference data (codes, currencies, branches, product hierarchies) centrally managed, versioned and distributed?",l1:"Code lists duplicated across systems and spreadsheets.",l3:"Central list for key code sets with change control.",l5:"Reference data service with versioning, automated distribution and mapping to external standards.",ev:"Reference data inventory, change log",r:"Code mismatches break integration and regulatory reports.",a:"Centralize reference data management with versioning and controlled distribution.",e:"L",m:["DMBOK: Reference & Master Data","NDMO: Reference & Master Data"]},
+ {id:"MDM-04",t:"Do operational and analytical systems consume master data through a hub or services rather than point-to-point copies?",l1:"Point-to-point extracts and manual syncs.",l3:"Hub publishes master data to the main consuming systems.",l5:"Real-time API and event distribution; consumers subscribe to changes.",ev:"Integration inventory, interface specifications",r:"Copies drift out of sync and fixes must be repeated in many places.",a:"Distribute master data through a hub and APIs/events instead of point-to-point copies.",e:"H",m:["DMBOK: Data Integration"]},
+ {id:"MDM-05",t:"Are entity relationships and hierarchies (households, corporate groups, beneficial ownership) modeled and maintained?",l1:"Relationships not captured.",l3:"Key hierarchies maintained for priority domains.",l5:"Relationship graph maintained and used in risk, service and AI.",ev:"Hierarchy models, graph store",r:"Group exposure, related-party and beneficial-ownership risks go unseen.",a:"Model entity hierarchies and relationships (e.g., as a graph) for 360° views and risk.",e:"M",m:["DMBOK: Reference & Master Data"]},
+ {id:"MDM-06",t:"Is master data governed with owners per domain, data standards and quality KPIs at the point of creation?",l1:"No owner for master data.",l3:"Owners and standards per master data domain with quality KPIs.",l5:"Quality enforced at creation points and monitored continuously against SLAs.",ev:"Master data standards, quality dashboard",r:"Golden-record quality decays after go-live.",a:"Assign master data owners and enforce data standards and quality at the point of entry.",e:"L",m:["DCAM: Data Governance","ISO 8000"]}]},
+{id:"MET",name:"Metadata, Catalog & Lineage",short:"Metadata",layer:"f",
+ who:"Data governance lead, data architects, BI and data engineering leads",
+ intro:"Whether people and machines can find data, understand what it means and trace where it came from.",
+ why:"Metadata is the context agents reason with. Catalog, glossary and lineage let an agent pick the right table, explain its answer and stay inside policy.",
+ refs:["DAMA-DMBOK2 (Metadata)","CDMC","BCBS 239 P2","NDMO: Data Catalog & Metadata"],
+ qs:[
+ {id:"MET-01",t:"Is there an enterprise data catalog covering the main sources, warehouse and lake assets?",l1:"No catalog; knowledge sits with individuals.",l3:"Catalog covers priority systems with business and technical metadata.",l5:"Automated harvesting across all platforms; the catalog is the default way to find data.",ev:"Catalog coverage report, usage statistics",r:"Analysts and agents cannot find or trust the right data.",a:"Deploy an enterprise data catalog with automated metadata harvesting.",e:"M",m:["CDMC 5 Cataloging","NDMO: Data Catalog & Metadata"]},
+ {id:"MET-02",t:"Is there a business glossary with approved definitions linked to technical assets?",l1:"Terms defined differently across departments.",l3:"Approved glossary for priority domains, linked to key assets.",l5:"Glossary governed through workflow and linked to columns, reports, KPIs and AI context.",ev:"Glossary, approval workflow",r:"The same KPI means different things in different reports.",a:"Build a governed business glossary and link terms to physical assets.",e:"L",m:["DMBOK: Metadata","DCAM: Business Data Knowledge"]},
+ {id:"MET-03",t:"Is lineage from source to report and model captured automatically, at column level?",l1:"Lineage reconstructed by hand when auditors ask.",l3:"Lineage documented for regulatory reports and CDEs.",l5:"Automated column-level lineage across pipelines, BI, models and agents.",ev:"Lineage graphs for sample reports",r:"Change impact is unknown and regulator lineage requests take weeks.",a:"Automate column-level lineage from source systems to reports, models and agents.",e:"H",m:["CDMC 14 Data Lineage","BCBS 239 P2","ISO/IEC 42001 A.7.5"]},
+ {id:"MET-04",t:"Is metadata active, driving access policies, quality rules and AI context rather than sitting as documentation?",l1:"Metadata is static documentation.",l3:"Some controls run off metadata (e.g., classification tags drive masking).",l5:"Metadata drives policy, quality, cost and AI grounding automatically.",ev:"Policy-as-code linked to tags",r:"Manual controls cannot keep pace with agent-scale data access.",a:"Activate metadata so the catalog drives access policies, quality rules and AI grounding.",e:"M",m:["AI-ready data practice (active metadata)"]}]},
+{id:"DQ",name:"Data Quality & Observability",short:"Data quality",layer:"f",
+ who:"Data quality lead, data owners, operations, risk",
+ intro:"How quality is defined, measured, fixed at the source and monitored in running pipelines.",
+ why:"Agents act at machine speed. Bad data that an analyst would catch becomes an automated wrong decision repeated thousands of times.",
+ refs:["ISO 8000","ISO/IEC 25012","BCBS 239 P3–P4","NDMO: Data Quality"],
+ qs:[
+ {id:"DQ-01",t:"Are data quality dimensions and rules defined for critical data elements?",l1:"No defined rules.",l3:"Rules for all CDEs across completeness, accuracy, validity, timeliness and consistency.",l5:"Rules maintained by stewards, versioned and reused across platforms.",ev:"Quality rulebook, CDE-to-rule mapping",r:"Quality is argued, not measured.",a:"Define data quality rules for all critical data elements across the standard dimensions.",e:"L",m:["ISO/IEC 25012","BCBS 239 P3","NDMO: Data Quality"]},
+ {id:"DQ-02",t:"Is data quality measured continuously, with scorecards visible to data owners?",l1:"Quality checked only after incidents.",l3:"Regular measurement with scorecards for priority domains.",l5:"Automated scoring with thresholds, trends and owner dashboards for all CDEs.",ev:"Scorecards, threshold breaches log",r:"Quality decline is discovered by customers or regulators first.",a:"Automate quality measurement and publish scorecards to data owners.",e:"M",m:["CDMC 12 Data Quality Measurement","BCBS 239 P4"]},
+ {id:"DQ-03",t:"Is there an issue management process that fixes root causes at the source?",l1:"Fixes applied downstream in reports or spreadsheets.",l3:"Issues logged, prioritized and assigned to owners.",l5:"Issues tracked to SLA with root-cause fixes in source systems and trend reporting.",ev:"Issue log, SLA reports",r:"The same errors recur and manual fixes multiply.",a:"Introduce data issue management with SLAs and root-cause remediation at source.",e:"L",m:["DMBOK: Data Quality","DCAM: Data Quality"]},
+ {id:"DQ-04",t:"Is data observability in place (freshness, volume, schema drift, anomalies) with alerting?",l1:"Pipeline failures are discovered by users.",l3:"Monitoring and alerting for critical pipelines.",l5:"Observability across all pipelines with automated alerting and incident runbooks.",ev:"Observability dashboards, alert history",r:"Agents keep acting on stale or broken data without anyone noticing.",a:"Deploy data observability for freshness, volume, schema drift and anomalies.",e:"M",m:["AI-ready data practice (observability)"]}]},
+{id:"ARC",name:"Data Architecture & Platform",short:"Architecture",layer:"p",
+ who:"Enterprise architect, CIO, infrastructure, data platform lead",
+ intro:"The target architecture, how storage and compute scale, AI infrastructure, cost transparency and legacy debt.",
+ why:"Agents need many workloads on the same governed data: SQL, search, streaming and models. Siloed, copy-heavy platforms multiply both risk and cost.",
+ refs:["TOGAF","DAMA-DMBOK2 (Architecture)","CDMC 13","NDMO: Data Architecture & Modelling"],
+ qs:[
+ {id:"ARC-01",t:"Is there an approved target data architecture with principles, standards and a reference model?",l1:"Architecture evolves project by project.",l3:"Approved reference architecture and principles.",l5:"Active design authority; every initiative is checked against the target architecture.",ev:"Reference architecture, principles, design authority minutes",r:"Each project adds another silo and more integration debt.",a:"Define the target data architecture, principles and a design authority.",e:"M",m:["TOGAF","NDMO: Data Architecture & Modelling"]},
+ {id:"ARC-02",t:"Is storage separated from compute so workloads can scale independently?",l1:"Tightly coupled appliances or servers.",l3:"Separation in place for new workloads.",l5:"Elastic compute on shared open storage across the estate.",ev:"Platform architecture diagrams, capacity reports",r:"Scaling one workload forces costly upgrades of the whole platform.",a:"Move to separated storage and compute (object storage with elastic engines).",e:"H",m:["Lakehouse reference architecture"]},
+ {id:"ARC-03",t:"Can one governed platform serve BI, data science, streaming and AI workloads on the same data?",l1:"Separate silos and copies per workload.",l3:"Shared platform for most analytical workloads.",l5:"Single governed foundation serving all workload types without copies.",ev:"Workload inventory, data copy inventory",r:"Copies multiply exposure of sensitive data and inconsistent results.",a:"Consolidate workloads onto one governed data foundation to remove copies.",e:"H",m:["Lakehouse reference architecture"]},
+ {id:"ARC-04",t:"Is infrastructure automated (infrastructure as code, containers, hybrid-ready) with cost visibility (FinOps)?",l1:"Manual provisioning; no cost transparency.",l3:"Automated provisioning for main platforms; costs reported centrally.",l5:"Fully automated, containerized and cost-attributed by domain and workload.",ev:"IaC repositories, cost reports",r:"Slow delivery and uncontrolled spend as AI workloads grow.",a:"Automate platform provisioning (IaC, containers) and introduce FinOps cost attribution.",e:"M",m:["CDMC 13 Cost Metrics","FinOps Framework"]},
+ {id:"ARC-05",t:"Is legacy technical debt (end-of-support appliances, ETL tools, data-mart sprawl) assessed with a retirement plan?",l1:"Legacy estate not inventoried.",l3:"Inventory with retirement candidates identified.",l5:"Sequenced retirement plan with savings case, dates and tracked progress.",ev:"Application and platform inventory, support end dates",r:"Licence and support costs consume the modernization budget.",a:"Inventory legacy platforms and marts and build a sequenced retirement plan.",e:"L",m:["DMBOK: Data Architecture"]},
+ {id:"ARC-06",t:"Is capacity planned for AI workloads (GPU, model serving, vector search) within residency requirements?",l1:"No AI infrastructure plan.",l3:"AI infrastructure sized for priority use cases, on-premises or in-country.",l5:"Shared, governed AI platform with GPU scheduling, model serving and capacity planning.",ev:"AI infrastructure plan, capacity model",r:"Agent programs stall waiting for compliant compute.",a:"Plan governed AI infrastructure (GPU, model serving, vector search) within residency limits.",e:"H",m:["ISO/IEC 42001 A.4"]}]},
+{id:"INT",name:"Data Integration & Pipelines",short:"Integration",layer:"p",
+ who:"Data engineering lead, integration team, application owners",
+ intro:"How data moves: ingestion patterns, latency, engineering discipline and producer–consumer agreements.",
+ why:"Agents that act on yesterday's data make yesterday's decisions. CDC, streaming and data contracts keep agent context current and stable.",
+ refs:["DAMA-DMBOK2 (Integration)","NDMO: Data Sharing & Interoperability","BCBS 239 P5"],
+ qs:[
+ {id:"INT-01",t:"Are ingestion patterns standardized (batch, CDC, streaming, API) on reusable frameworks?",l1:"Each project builds its own pipelines.",l3:"Standard patterns and shared components for most pipelines.",l5:"Reusable, metadata-driven frameworks for all ingestion.",ev:"Integration standards, framework repository",r:"Delivery is slow and every pipeline is a one-off to maintain.",a:"Standardize ingestion on reusable, metadata-driven frameworks.",e:"M",m:["DMBOK: Data Integration","NDMO: Data Sharing & Interoperability"]},
+ {id:"INT-02",t:"Is change data capture or streaming used where the business needs low latency?",l1:"Nightly batch only.",l3:"CDC or streaming for selected time-sensitive feeds.",l5:"CDC and event streaming for all time-sensitive domains, with latency SLAs.",ev:"Latency SLAs, CDC/streaming inventory",r:"Fraud, service and agent decisions run on stale data.",a:"Introduce CDC and event streaming for latency-sensitive use cases (fraud, service, agents).",e:"H",m:["BCBS 239 P5 Timeliness"]},
+ {id:"INT-03",t:"Are pipelines version-controlled, tested and deployed through CI/CD (DataOps)?",l1:"Manual deployments; no automated tests.",l3:"Version control and CI/CD for most pipelines.",l5:"Full DataOps with automated tests, environments and release gates.",ev:"Repositories, CI/CD runs, test coverage",r:"Changes break production and failures are hard to trace.",a:"Adopt DataOps: version control, automated testing and CI/CD for pipelines.",e:"M",m:["DataOps practice"]},
+ {id:"INT-04",t:"Are data contracts agreed between producers and consumers (schema, SLAs, quality)?",l1:"Source changes break downstream consumers.",l3:"Contracts defined for critical feeds.",l5:"Contracts enforced in pipelines with schema validation and SLA monitoring.",ev:"Contract specifications, validation results",r:"Upstream changes silently break reports, models and agents.",a:"Introduce data contracts between producers and consumers, enforced in pipelines.",e:"M",m:["Data contracts practice"]}]},
+{id:"DWH",name:"Data Warehousing & Modeling",short:"Warehouse",layer:"p",
+ who:"BI/DW lead, finance and regulatory reporting, data modelers",
+ intro:"Modeling discipline, trusted KPIs, reconciliation, auditable history and performance of the enterprise warehouse.",
+ why:"Certified KPIs and reconciled figures are what an agent should quote. If the warehouse cannot give one version of the truth, neither can the agent.",
+ refs:["Kimball dimensional","Data Vault 2.0","BCBS 239 P3–P8"],
+ qs:[
+ {id:"DWH-01",t:"Is a consistent modeling standard (dimensional, Data Vault or 3NF) applied across the warehouse?",l1:"Models vary by project and developer.",l3:"Enterprise modeling standard applied to new development.",l5:"Enterprise model with standards, reviews and reusable patterns across all subject areas.",ev:"Modeling standards, model repository",r:"Every change is expensive and integration of new sources is slow.",a:"Adopt an enterprise modeling standard (e.g., Data Vault core with dimensional marts).",e:"M",m:["NDMO: Data Architecture & Modelling"]},
+ {id:"DWH-02",t:"Does the warehouse deliver one version of the truth for KPIs through conformed dimensions?",l1:"Different reports show different numbers.",l3:"Conformed dimensions and certified KPIs for priority areas.",l5:"Certified enterprise KPIs used by all reports, dashboards and AI.",ev:"KPI catalog, certification records",r:"Management and agents act on contradictory numbers.",a:"Certify enterprise KPIs on conformed dimensions to deliver one version of the truth.",e:"M",m:["BCBS 239 P7 Accuracy"]},
+ {id:"DWH-03",t:"Is reported data reconciled to source systems and the general ledger, with controls over manual adjustments?",l1:"No systematic reconciliation; manual adjustments untracked.",l3:"Key reports reconciled with documented controls.",l5:"Automated reconciliation and adjustment tracking across all regulatory and management reports.",ev:"Reconciliation reports, adjustment log",r:"Reported figures cannot be defended to auditors or regulators.",a:"Automate reconciliation to source and ledger and control manual adjustments.",e:"M",m:["BCBS 239 P3 Accuracy & integrity"]},
+ {id:"DWH-04",t:"Is history managed (slowly changing dimensions, bitemporal) to support audit and regulatory lookback?",l1:"History overwritten or incomplete.",l3:"History kept for key entities and measures.",l5:"Full, auditable history with as-of and as-was reporting.",ev:"History design, sample as-of reports",r:"Past positions cannot be reproduced for audits or disputes.",a:"Implement auditable history (SCD / bitemporal) for regulatory lookback.",e:"M",m:["BCBS 239 P6 Adaptability"]},
+ {id:"DWH-05",t:"Does the warehouse meet performance and concurrency SLAs without heavy manual tuning?",l1:"Frequent slowdowns and batch overruns.",l3:"SLAs met for most workloads.",l5:"Consistent SLAs with workload management and elastic scaling.",ev:"Batch SLA reports, query performance stats",r:"Reports arrive late and agent queries compete with reporting.",a:"Fix performance with workload management, offloading and elastic engines.",e:"M",m:["BCBS 239 P5 Timeliness"]}]},
+{id:"LKH",name:"Data Lake, Lakehouse & Content",short:"Lakehouse",layer:"p",
+ who:"Data platform lead, data engineering, architects, records management",
+ intro:"Whether raw, semi-structured and unstructured data sits on open, governed, multi-engine storage.",
+ why:"Most agent knowledge lives in documents, emails and logs. A governed lakehouse on open table formats is where that content becomes usable without creating new silos.",
+ refs:["Apache Iceberg / Delta Lake / Hudi","Medallion architecture","NDMO: Document & Content Management"],
+ qs:[
+ {id:"LKH-01",t:"Is raw, semi-structured and unstructured data landed in a governed lake rather than an ungoverned 'swamp'?",l1:"No lake, or files land with no owner or catalog.",l3:"Landing zone with ownership and cataloging for priority sources.",l5:"Every arrival is owned, classified and cataloged automatically.",ev:"Landing zone design, catalog coverage",r:"Sensitive data accumulates unseen and unusable.",a:"Establish a governed landing zone with ownership, classification and cataloging on arrival.",e:"M",m:["CDMC 5 Cataloging","CDMC 6 Classification"]},
+ {id:"LKH-02",t:"Are open table formats (Apache Iceberg, Delta Lake or Hudi) used for ACID, time travel and schema evolution?",l1:"Plain files or proprietary formats.",l3:"Open table format used for new datasets.",l5:"Open table format is the standard across the lakehouse, with an open catalog.",ev:"Table format inventory, catalog configuration",r:"Lock-in and unreliable data under concurrent updates.",a:"Standardize on an open table format (e.g., Apache Iceberg) for ACID, time travel and portability.",e:"M",m:["Open table formats"]},
+ {id:"LKH-03",t:"Is a layered zone design (e.g., bronze, silver, gold) in place with clear promotion rules?",l1:"No zoning; raw and curated data mixed.",l3:"Layers defined and used for main pipelines.",l5:"Quality gates and ownership enforced between every layer.",ev:"Zone design, promotion rules",r:"Consumers cannot tell raw data from certified data.",a:"Implement a layered (medallion) design with quality gates between zones.",e:"L",m:["Medallion architecture"]},
+ {id:"LKH-04",t:"Can multiple engines (SQL, Spark, AI) query the same data without copying it?",l1:"Data copied into each tool.",l3:"Two or more engines share core datasets.",l5:"Shared open storage queried by many engines under one policy layer.",ev:"Engine inventory, catalog integration",r:"Copies drift and security policies diverge across tools.",a:"Enable multi-engine access to shared open tables under a single policy layer.",e:"M",m:["Iceberg REST catalog"]},
+ {id:"LKH-05",t:"Is unstructured content (documents, emails, call recordings, images) cataloged, classified and processable for AI?",l1:"Content scattered across file shares and mailboxes.",l3:"Priority content collections ingested and classified.",l5:"Content ingested, classified, chunked, versioned and governed for AI use.",ev:"Content inventory, classification results",r:"Agents either lack knowledge or are fed unclassified sensitive documents.",a:"Ingest and classify unstructured content into a governed store ready for AI retrieval.",e:"H",m:["NDMO: Document & Content Management","DMBOK: Document & Content"]}]},
+{id:"SEC",name:"Security, Privacy & Sovereignty",short:"Security",layer:"f",
+ who:"CISO, DPO, compliance, IAM team, legal",
+ intro:"Classification, fine-grained access, protection of sensitive data, residency, consent and the privacy compliance program.",
+ why:"An agent must never see more than the person it serves. Classification and fine-grained, centrally enforced access are the non-negotiable guardrail.",
+ refs:["ISO/IEC 27001:2022","CDMC","National data protection law","NDMO: Data Classification"],
+ qs:[
+ {id:"SEC-01",t:"Is data classified (public, internal, confidential, restricted, personal) with tags applied automatically?",l1:"No classification scheme in use.",l3:"Scheme approved and applied to priority platforms.",l5:"Automated discovery and tagging across all platforms, including unstructured content.",ev:"Classification policy, discovery scan results",r:"Sensitive data cannot be protected because nobody knows where it is.",a:"Implement a classification scheme with automated sensitive-data discovery and tagging.",e:"M",m:["CDMC 6 Classification","NDMO: Data Classification"]},
+ {id:"SEC-02",t:"Is access fine-grained (row, column, attribute-based) and centrally enforced across platforms?",l1:"Broad role or database-level grants.",l3:"Fine-grained controls on platforms holding sensitive data.",l5:"Central policy engine with attribute, row and column controls everywhere, reviewed periodically.",ev:"Access model, policy engine configuration, access reviews",r:"Over-privileged users and agents expose personal and confidential data.",a:"Centralize fine-grained, attribute-based access control across all data platforms.",e:"H",m:["CDMC 7 Entitlements & Access","ISO/IEC 27001 A.5.15"]},
+ {id:"SEC-03",t:"Is sensitive data masked, tokenized or encrypted at rest and in transit, with managed keys?",l1:"Sensitive data visible in clear, including non-production.",l3:"Encryption at rest and in transit; masking in non-production.",l5:"Dynamic masking, tokenization and customer-managed keys everywhere.",ev:"Encryption standards, key management records, masking rules",r:"A single breach exposes readable customer data.",a:"Apply encryption, dynamic masking and tokenization with managed keys, including non-production.",e:"M",m:["CDMC 9 Security Controls","ISO/IEC 27001 A.8.24","ISO/IEC 27001 A.8.11"]},
+ {id:"SEC-04",t:"Are data residency and sovereignty requirements met by design?",l1:"Residency handled case by case.",l3:"Residency requirements documented and applied to platform choices.",l5:"Residency enforced in architecture, contracts and continuous monitoring.",ev:"Data location register, contracts, transfer approvals",r:"Unlicensed cross-border transfers, including through cloud services.",a:"Design residency and sovereignty controls into the target architecture and contracts.",e:"M",m:["CDMC 4 Sovereignty & Cross-Border","PDPL"]},
+ {id:"SEC-05",t:"Are consent, purpose limitation and data subject rights operationalized?",l1:"Handled manually on request.",l3:"Consent captured and rights requests handled through a defined process.",l5:"Consent and purpose enforced in data access, with automated rights handling.",ev:"Consent records, rights request log",r:"Data used beyond the purpose customers agreed to.",a:"Operationalize consent, purpose limitation and data subject rights in data access.",e:"M",m:["CDMC 8 Data Consumption Purpose","PDPL"]},
+ {id:"SEC-06",t:"Is the privacy compliance program in place: records of processing, a DPO, required licences, DPIAs and a breach process that meets regulatory deadlines?",l1:"No privacy program beyond policy statements.",l3:"Records of processing, DPO and breach procedure in place; DPIAs for high-risk processing.",l5:"Automated: records of processing generated from the catalog, DPIAs in change control, breach playbooks tested.",ev:"Records of processing, DPO appointment, DPIA register, breach playbook",r:"Penalties and reputational damage as enforcement begins.",a:"Complete the privacy program: records of processing, DPO, licensing, DPIAs and a tested 72-hour breach process.",e:"M",m:["CDMC 10 DPIA","PDPL"]}]},
+{id:"OPS",name:"Data Operations & Lifecycle",short:"Operations",layer:"p",
+ who:"Platform operations, records management, IT risk, business continuity",
+ intro:"Retention and purging, backup and recovery, and running data platforms to service levels.",
+ why:"Agents become operational dependencies. Their data stores, including vector and AI stores, need the same retention, recovery and service discipline as core systems.",
+ refs:["CDMC 11","NDMO: Data Operations","ISO/IEC 27001:2022","ITIL 4"],
+ qs:[
+ {id:"OPS-01",t:"Are retention, archiving and purging rules defined per data class and executed automatically?",l1:"Data kept forever or deleted ad hoc.",l3:"Approved retention schedule applied to the main platforms.",l5:"Retention enforced automatically, with legal hold and evidence of purging.",ev:"Retention schedule, purge logs",r:"Over-retention of personal data breaches privacy law and inflates storage costs.",a:"Implement an approved retention schedule with automated archiving, purging and legal hold.",e:"M",m:["CDMC 11 Retention, Archiving & Purging","NDMO: Data Operations","PDPL"]},
+ {id:"OPS-02",t:"Are backup, disaster recovery and RPO/RTO targets defined and tested for data platforms?",l1:"Backups exist but restores are untested.",l3:"RPO/RTO defined for critical platforms and tested at least annually.",l5:"Automated, regularly tested recovery meeting RPO/RTO, including AI and vector stores.",ev:"DR plan, test reports",r:"Loss of critical data or prolonged outage of reporting and AI services.",a:"Define and test RPO/RTO for all data platforms, including AI stores.",e:"M",m:["ISO/IEC 27001 A.8.13","NDMO: Data Operations"]},
+ {id:"OPS-03",t:"Are data platforms operated to defined SLAs with monitoring, incident and change management?",l1:"Operations reactive; no SLAs.",l3:"SLAs, monitoring and service management for core platforms.",l5:"Service objectives with automated remediation and capacity management.",ev:"SLA catalog, incident and change records",r:"Unreliable data services erode trust in analytics and agents.",a:"Run data platforms to SLAs with monitoring, incident and change management.",e:"M",m:["ITIL 4","NDMO: Data Operations"]}]},
+{id:"ANA",name:"Analytics, BI & Data Products",short:"Analytics",layer:"v",
+ who:"BI lead, analytics and data science lead, business unit heads",
+ intro:"How data reaches decisions: governed self-service, data products, production machine learning and governed sharing.",
+ why:"Data products with owners and SLAs are the natural interface for agents. They give each agent a contract it can rely on.",
+ refs:["Data mesh (data as a product)","MLOps practice","NDMO: BI & Analytics"],
+ qs:[
+ {id:"ANA-01",t:"Are certified datasets and dashboards available through governed self-service?",l1:"Analytics depends on IT requests and spreadsheets.",l3:"Self-service on certified datasets for priority areas.",l5:"Certified, discoverable assets with governed self-service across the enterprise.",ev:"Certified asset list, usage metrics",r:"Spreadsheet sprawl and shadow analytics outside governance.",a:"Launch governed self-service with certified datasets and dashboards.",e:"M",m:["NDMO: BI & Analytics"]},
+ {id:"ANA-02",t:"Are data products defined with owners, SLAs, documentation and discoverability?",l1:"Datasets have no owner or SLA.",l3:"Data products defined for priority domains.",l5:"Data products managed with consumers, SLAs and roadmaps across domains.",ev:"Data product register, SLAs",r:"Agents and teams build on datasets nobody maintains.",a:"Define domain data products with owners, SLAs and catalog listings.",e:"M",m:["Data mesh practice"]},
+ {id:"ANA-03",t:"Is machine learning in production with MLOps (deployment, monitoring, retraining)?",l1:"Only experiments or notebooks.",l3:"Some models in production with manual monitoring.",l5:"Multiple models in production with automated MLOps.",ev:"Model inventory, monitoring dashboards",r:"Models drift unnoticed and value never leaves the lab.",a:"Establish MLOps for deployment, monitoring and retraining of models.",e:"H",m:["ISO/IEC 42001 A.6"]},
+ {id:"ANA-04",t:"Is data shared internally and externally through governed APIs or sharing protocols rather than file extracts?",l1:"Email and file extracts.",l3:"APIs or governed sharing for main data flows.",l5:"Governed APIs and sharing with usage tracking and agreements.",ev:"API catalog, sharing agreements",r:"Uncontrolled copies leave the institution with no audit trail.",a:"Replace file extracts with governed data APIs and sharing agreements.",e:"M",m:["NDMO: Data Sharing & Interoperability"]}]},
+{id:"AGT",name:"Agentic AI Readiness",short:"Agentic AI",layer:"v",
+ who:"AI lead, CDO, CISO, risk and compliance, enterprise architect",
+ intro:"The specific data capabilities agents need: meaning, retrieval, governed tool access, oversight, evaluation and audit.",
+ why:"This domain checks whether the data estate can safely feed autonomous agents, and whether every agent action can be explained and reversed.",
+ refs:["ISO/IEC 42001","NIST AI RMF 1.0 & AI 600-1","ISO/IEC 5259","Model Context Protocol"],
+ qs:[
+ {id:"AGT-01",t:"Is there a governed semantic layer or knowledge graph that gives agents business meaning (metrics, entities, relationships)?",l1:"Business meaning lives in reports and people's heads.",l3:"Semantic layer covers priority KPIs and entities.",l5:"Semantic layer and knowledge graph consumed by both BI and agents.",ev:"Semantic model, knowledge graph",r:"Agents misinterpret metrics and invent relationships.",a:"Build a governed semantic layer and knowledge graph that agents can query.",e:"H",m:["AI-ready data practice"]},
+ {id:"AGT-02",t:"Is there a governed retrieval layer (vector search / RAG) over approved, classified and current content?",l1:"No retrieval layer, or ungoverned pilots.",l3:"Retrieval over curated collections with access control.",l5:"Retrieval enforces classification, entitlements and freshness, with source citation.",ev:"RAG architecture, access tests",r:"Agents retrieve outdated or restricted documents.",a:"Deploy a governed retrieval (RAG) layer that enforces classification and access.",e:"H",m:["NIST AI 600-1","ISO/IEC 42001 A.7.5"]},
+ {id:"AGT-03",t:"Can agents reach data only through registered, audited tools or APIs (e.g., MCP servers) that apply the same entitlements as the user they serve?",l1:"Agents use broad service accounts, or none exist.",l3:"Agent tools registered with scoped credentials for pilots.",l5:"Every agent tool is registered, scoped to the user's entitlements and audited.",ev:"Tool registry, entitlement design",r:"An agent becomes a privileged back door to data.",a:"Expose data to agents only through registered, entitlement-aware tools and APIs (e.g., MCP).",e:"H",m:["Model Context Protocol","CDMC 7 Entitlements & Access"]},
+ {id:"AGT-04",t:"Is there an AI governance framework (model and agent inventory, risk tiering, human oversight, evaluation, monitoring)?",l1:"No AI-specific governance.",l3:"AI policy, inventory and risk tiering approved.",l5:"Framework aligned to ISO/IEC 42001 and NIST AI RMF, operating with metrics.",ev:"AI policy, inventory, risk assessments",r:"Unmanaged AI risk and no defensible position with regulators.",a:"Establish AI governance: agent inventory, risk tiering, human oversight and evaluation.",e:"M",m:["ISO/IEC 42001 A.2–A.6","NIST AI RMF (Govern)","EU AI Act"]},
+ {id:"AGT-05",t:"Are agent actions and data access logged end-to-end for audit, explainability and rollback?",l1:"No traceability of AI outputs or actions.",l3:"Logging of prompts, outputs and data access for pilots.",l5:"Full trace from request to data accessed to action taken, with rollback.",ev:"Trace samples, rollback procedure",r:"Agent errors cannot be explained, reversed or defended.",a:"Log agent requests, data access and actions end-to-end, with rollback procedures.",e:"M",m:["ISO/IEC 42001 A.6","NIST AI RMF (Manage)"]},
+ {id:"AGT-06",t:"Are AI-ready data requirements defined (quality, provenance, representativeness, bias) for data feeding models and agents?",l1:"AI uses whatever data is available.",l3:"Requirements defined for priority AI use cases.",l5:"Requirements measured and gated before any data is used by models or agents.",ev:"AI data requirements, data quality reports for AI",r:"Biased or low-quality data produces unfair or wrong automated outcomes.",a:"Define AI-ready data requirements and gate the data used by models and agents.",e:"M",m:["ISO/IEC 5259","ISO/IEC 42001 A.7.4","EU AI Act Art. 10"]},
+ {id:"AGT-07",t:"Are agent use cases prioritized by value and risk, with evaluation (accuracy, safety, cost) before production?",l1:"Use cases chosen by enthusiasm; no evaluation.",l3:"Portfolio with value/risk scoring and pre-production evaluation.",l5:"Continuous evaluation in production against business KPIs, with stop criteria.",ev:"Use case register, evaluation reports",r:"Pilots never scale, or reach production with untested failure modes.",a:"Run agent use cases through a value/risk portfolio with evaluation gates.",e:"M",m:["NIST AI RMF (Measure)","ISO/IEC 42001 A.5"]}]}
+];
+const ALLQ=DOMAINS.flatMap(d=>d.qs.map(q=>Object.assign(q,{d})));
+const QMAP=Object.fromEntries(ALLQ.map(q=>[q.id,q]));
+const DMAP=Object.fromEntries(DOMAINS.map(d=>[d.id,d]));
+
+const INITS=[
+ {id:"I01",name:"Data & AI strategy and operating model",q:["STR-01","STR-02","STR-03","STR-04"],owner:"Executive sponsor & CDO",base:0,dur:4,eff:"M",deps:[],del:["Data & AI strategy and target operating model","CDO mandate, RACI and funding model","Value portfolio and literacy plan"],kpi:["Strategy approved by executive committee","% of data initiatives with an approved business case","Literacy program completion rate"]},
+ {id:"I02",name:"Data governance program",q:["GOV-01","GOV-02","GOV-03","GOV-04","GOV-05","GOV-06"],owner:"CDO / Head of Data Governance",base:1,dur:9,eff:"M",deps:["I01"],del:["Council charter and decision log","Policy framework and ownership register","CDE register, authoritative sources and regulatory control library"],kpi:["% critical domains with active owner and steward","% CDEs with definition, owner and threshold","Governance issues past SLA"]},
+ {id:"I03",name:"Privacy, security & sovereignty controls",q:["SEC-01","SEC-02","SEC-03","SEC-04","SEC-05","SEC-06"],owner:"CISO & DPO",base:0,dur:12,eff:"H",deps:[],del:["Classification scheme with automated discovery","Central fine-grained access model, masking and key management","Privacy program: records of processing, DPO, DPIAs, breach playbook"],kpi:["% sensitive data assets classified","% platforms under central access policy","Breach notification drill completed within 72 hours"]},
+ {id:"I04",name:"Metadata, catalog & lineage",q:["MET-01","MET-02","MET-03","MET-04"],owner:"Head of Data Governance & Data Architecture",base:3,dur:9,eff:"M",deps:["I02"],del:["Enterprise catalog with automated harvesting","Business glossary linked to assets","Column-level lineage for CDEs and regulatory reports"],kpi:["Catalog coverage of priority systems","% CDEs with end-to-end lineage","Monthly active catalog users"]},
+ {id:"I05",name:"Data quality management & observability",q:["DQ-01","DQ-02","DQ-03","DQ-04"],owner:"Data Quality Lead",base:4,dur:10,eff:"M",deps:["I02"],del:["Quality rulebook for CDEs","Quality scorecards per data owner","Observability with alerting and runbooks"],kpi:["% CDEs above quality threshold","Mean time to resolve quality issues","% pipeline incidents detected before users"]},
+ {id:"I06",name:"Master & reference data management",q:["MDM-01","MDM-02","MDM-03","MDM-04","MDM-05","MDM-06"],owner:"MDM Lead with business domain owners",base:6,dur:12,eff:"H",deps:["I02","I05"],del:["MDM style decision and domain sequence","Golden record for the first domain (customer/party)","Reference data service"],kpi:["Duplicate rate in the core domain","% consuming systems served by the hub","Match precision of the golden record"]},
+ {id:"I07",name:"Target architecture & platform foundation",q:["ARC-01","ARC-02","ARC-03","ARC-04","ARC-05","ARC-06"],owner:"Enterprise / Chief Data Architect",base:1,dur:7,eff:"M",deps:["I01"],del:["Target reference architecture and principles","Vendor-agnostic platform evaluation and selection","Legacy retirement plan and AI infrastructure plan"],kpi:["Architecture decisions approved by design authority","% workloads on the target platform","Cost per workload visible by domain"]},
+ {id:"I08",name:"Lakehouse build & warehouse modernization",q:["LKH-01","LKH-02","LKH-03","LKH-04","DWH-01","DWH-02","DWH-03","DWH-04","DWH-05"],owner:"Head of Data Engineering",base:6,dur:14,eff:"H",deps:["I07","I03"],del:["Governed lakehouse on an open table format with layered zones","Enterprise model, certified KPIs and reconciliation controls","Legacy offload and migration waves"],kpi:["% priority subject areas migrated","Certified KPIs in use","Batch SLA attainment"]},
+ {id:"I09",name:"Integration, streaming & DataOps",q:["INT-01","INT-02","INT-03","INT-04"],owner:"Data Engineering / Integration Lead",base:6,dur:10,eff:"M",deps:["I07"],del:["Reusable ingestion framework (batch, CDC, streaming)","CI/CD and automated testing for pipelines","Data contracts for priority producers"],kpi:["% pipelines deployed through CI/CD","Latency for real-time domains","Breaking changes caught by contracts"]},
+ {id:"I10",name:"Data operations & lifecycle",q:["OPS-01","OPS-02","OPS-03"],owner:"Platform Operations & Records Management",base:4,dur:8,eff:"M",deps:["I02"],del:["Retention schedule with automated purging","Tested DR with RPO/RTO","Data platform SLA catalog"],kpi:["% data classes under automated retention","DR test pass rate","Platform SLA attainment"]},
+ {id:"I11",name:"Analytics, data products & MLOps",q:["ANA-01","ANA-02","ANA-03","ANA-04"],owner:"Head of Analytics / Data Science",base:12,dur:10,eff:"M",deps:["I08","I04"],del:["Governed self-service with certified assets","Domain data products with SLAs","MLOps pipeline"],kpi:["Certified data products in use","Models in production with monitoring","% sharing through APIs rather than file extracts"]},
+ {id:"I12",name:"AI governance & responsible AI",q:["AGT-04","AGT-06","AGT-07"],owner:"Chief AI Officer / Risk & Compliance",base:2,dur:6,eff:"M",deps:[],del:["AI policy and risk-tiering method","Agent and model inventory","Evaluation gates and AI-ready data standards"],kpi:["% AI systems inventoried and risk-tiered","% use cases passing evaluation gates","AI incidents closed within SLA"]},
+ {id:"I13",name:"Agentic data enablement",q:["AGT-01","AGT-02","AGT-03","AGT-05","LKH-05"],owner:"AI & Data Platform Leads",base:12,dur:12,eff:"H",deps:["I04","I05","I03","I12","I08"],del:["Semantic layer / knowledge graph","Governed retrieval over classified content","Agent tool gateway (e.g., MCP) with entitlements and full audit trail"],kpi:["% agent data access through governed tools","% retrieval answers with source citation","% agent actions traceable end-to-end"]}
+];
+const IMAP=Object.fromEntries(INITS.map(i=>[i.id,i]));
+const Q2I={};INITS.forEach(i=>i.q.forEach(q=>Q2I[q]=i.id));
+
+const INDUSTRIES=[["bank","Banking & financial services",1],["cb","Central bank / regulator",1],["ins","Insurance",1],["tel","Telecom",1],["gov","Government & public sector",1],["health","Healthcare",1],["energy","Energy & utilities",0],["retail","Retail & FMCG",0],["mfg","Manufacturing",0],["other","Other",0]];
+const REGIONS=[["eg","Egypt"],["sa","Saudi Arabia"],["ae","United Arab Emirates"],["gcc","Other GCC"],["other","Other"]];
+const RESIDENCY=[["strict","On-premises / owned in-country infrastructure only"],["sovereign","In-country or sovereign cloud permitted"],["open","Public cloud permitted with controls"]];
+const PLATFORMS=[["legacy","Legacy enterprise warehouse / appliance"],["hadoop","Hadoop / first-generation data lake"],["cloudDW","Modern cloud data warehouse"],["ops","Operational databases, extracts and spreadsheets"],["mixed","Mixed estate (warehouse, lake and marts)"]];
+const SIZES=[["s","Under 1,000 employees"],["m","1,000–5,000 employees"],["l","5,000–20,000 employees"],["xl","Over 20,000 employees"]];
+const SOURCES=[["s","Under 20 source systems"],["m","20–100 source systems"],["l","Over 100 source systems"]];
+const AMBITION=[[3,"Foundational: defined and repeatable (target 3)"],[4,"Advanced: measured and managed (target 4)"],[5,"Leading: optimized and automated (target 5)"]];
+const PRIOS=[["reg","Regulatory reporting & compliance",["GOV","MET","DWH","SEC"]],["c360","Customer 360 & personalization",["MDM","DQ","ANA"]],["rt","Real-time decisioning",["INT","ARC"]],["cost","Cost reduction & legacy retirement",["ARC","LKH","OPS"]],["agentic","Agentic AI & GenAI",["AGT","MET","SEC"]],["risk","Fraud, risk & AML",["INT","DQ","MDM"]],["self","Self-service analytics",["ANA","MET"]],["cloud","Cloud / hybrid migration",["ARC","SEC","OPS"]]];
+const CONF={V:"Verified",I:"Interview",A:"Assumed"};
+const SEVN={crit:"Critical",high:"High",med:"Medium",low:"Low",none:"On target"};
+const IMPN={1:"Low",2:"Medium",3:"High"};
+const EFFN={L:"Low",M:"Medium",H:"High"};
+const KEY="isys-dma-v2";
+const STEPS=DOMAINS.length+2;
+
+/* =================== state =================== */
+let S=load();
+function blank(){return{step:0,tab:"sum",filter:"all",dfilter:"all",profile:{org:"",assessor:"",date:new Date().toISOString().slice(0,10),industry:"bank",region:"eg",size:"l",sources:"m",residency:"strict",platform:"legacy",ambition:4,prios:[],usecases:"",tools:""},ans:{},conf:{},notes:{},targets:{},imp:{},sample:false}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.profile){const b=blank();return Object.assign(b,s,{profile:Object.assign(b.profile,s.profile)})}}catch(e){}return blank()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const f1=n=>n==null||isNaN(n)?"–":(Math.round(n*10)/10).toFixed(1);
+const lbl=(arr,k)=>(arr.find(a=>a[0]==k)||[,""])[1];
+
+/* =================== scoring engine =================== */
+const regulated=()=>!!(INDUSTRIES.find(i=>i[0]===S.profile.industry)||[])[2];
+const isBank=()=>["bank","cb"].includes(S.profile.industry);
+const boosted=id=>PRIOS.some(p=>S.profile.prios.includes(p[0])&&p[2].includes(id));
+const REG_DOMS=["GOV","SEC","MET","DQ"];
+const GATE_Q=new Set(["SEC-01","SEC-02","AGT-03","AGT-04","AGT-05"]);
+const GATE_D=new Set(["GOV","MET","DQ","MDM"]);
+function val(id){const v=S.ans[id];if(v==null||v==="na")return null;return v==="u"?1:v}
+function dScore(d){let s=0,n=0;d.qs.forEach(q=>{const v=val(q.id);if(v!=null){s+=v;n++}});return n?s/n:null}
+function dTarget(d){
+  if(S.targets[d.id]!=null)return S.targets[d.id];
+  let t=+S.profile.ambition||4;
+  if(regulated()&&REG_DOMS.includes(d.id))t=Math.max(t,4);
+  if(boosted(d.id))t=Math.max(t,4);
+  return Math.min(5,t)}
+function dImp(d){
+  if(S.imp[d.id]!=null)return S.imp[d.id];
+  let i=2;if(boosted(d.id))i=3;if(regulated()&&REG_DOMS.includes(d.id))i=3;if(d.id==="AGT"&&S.profile.prios.includes("agentic"))i=3;return i}
+function regFlag(q){return regulated()&&q.m.some(m=>/PDPL|BCBS|CDMC 4|CDMC 10|CDMC 11/.test(m))}
+function gateFlag(q){return GATE_Q.has(q.id)||GATE_D.has(q.d.id)}
+function prio(q,g){return g*dImp(q.d)*(gateFlag(q)?1.2:1)*(regFlag(q)?1.15:1)}
+function sevOf(p){return p>=9?"crit":p>=6?"high":p>=3?"med":p>0?"low":"none"}
+function gaps(){
+  const out=[];ALLQ.forEach(q=>{const v=val(q.id);if(v==null)return;const t=dTarget(q.d);const g=t-v;if(g<=0)return;
+    const p=prio(q,g);out.push({q,cur:v,t,g,p,sev:sevOf(p),unsure:S.ans[q.id]==="u",conf:S.conf[q.id]||"I",init:Q2I[q.id]})});
+  return out.sort((a,b)=>b.p-a.p)}
+function answered(d){return d.qs.filter(q=>S.ans[q.id]!=null).length}
+function totalAnswered(){return ALLQ.filter(q=>S.ans[q.id]!=null).length}
+function gates(){
+  const ds=id=>dScore(DMAP[id]);
+  const mn=(...a)=>a.some(x=>x==null)?null:Math.min(...a);
+  return[
+   ["Data ownership & governance operating",ds("GOV")],
+   ["Catalog, glossary & lineage available",ds("MET")],
+   ["Data quality measured for critical data",ds("DQ")],
+   ["Classification & fine-grained access enforced",mn(val("SEC-01"),val("SEC-02"))],
+   ["Trusted golden records for core entities",ds("MDM")],
+   ["AI governance & risk tiering operating",val("AGT-04")],
+   ["Agents reach data only through governed tools",val("AGT-03")],
+   ["Agent actions logged end-to-end & reversible",val("AGT-05")]
+  ].map(([n,v])=>({n,v,st:v==null?"fail":v>=3?"pass":v>=2?"partial":"fail"}))}
+function readiness(gs){const v=gs.map(g=>g.v==null?0:Math.min(g.v,3)/3);return Math.round(v.reduce((a,b)=>a+b,0)/v.length*100)}
+function stage(gs){
+  if(gs.every(g=>g.st==="pass"))return{t:"Ready to scale agents",c:"low",d:"All readiness gates pass. Agents can move from pilots to production at scale, under the AI governance framework and continuous monitoring."};
+  if(gs.every(g=>g.st!=="fail"))return{t:"Controlled pilots with guardrails",c:"high",d:"Foundations are partly in place. Limit agents to low-risk, read-only or human-approved use cases while the partial gates are closed."};
+  return{t:"Foundation first",c:"crit",d:"At least one gate fails. Scaling agents now would automate existing data and control weaknesses. Close the failed gates first and keep AI in sandboxed pilots."}}
+function plan(){
+  const G=gaps();const act={};
+  INITS.forEach(i=>{const items=G.filter(x=>x.init===i.id);if(!items.length)return;
+    act[i.id]={...i,items,p:items.reduce((s,x)=>s+x.p,0),sev:["crit","high","med","low"].find(s=>items.some(x=>x.sev===s))}});
+  const order=INITS.map(i=>i.id).filter(id=>act[id]);
+  order.forEach(id=>{const a=act[id];let st=a.base;a.deps.forEach(d=>{if(act[d])st=Math.max(st,act[d].start+3)});a.start=Math.min(st,20);a.end=Math.min(24,a.start+a.dur);a.phase=a.start<6?1:a.start<12?2:3});
+  return{G,list:order.map(id=>act[id]).sort((a,b)=>a.start-b.start||b.p-a.p),act}}
+
+/* =================== recommendations =================== */
+function archetype(){
+  const p=S.profile;
+  const base={
+   strict:{t:"Sovereign hybrid lakehouse",b:["Open table format (e.g., Apache Iceberg) on S3-compatible object storage in your own data centers","Compute separated from storage and containerized, so each engine scales per workload","One catalog and policy engine across warehouse, lake and AI zones","A GPU-ready private AI zone for on-premises models and vector search, so sensitive data stays inside the perimeter"]},
+   sovereign:{t:"In-country cloud lakehouse",b:["Managed lakehouse in an in-country or sovereign cloud region, with customer-managed keys","CDC and hybrid connectivity from core systems that remain on-premises","Open table formats to keep data portable and avoid lock-in","One catalog and policy engine spanning on-premises and cloud"]},
+   open:{t:"Cloud-native lakehouse on open formats",b:["Elastic cloud lakehouse with storage separated from compute","Open table formats so several engines and AI services share one copy of the data","Residency-aware placement for regulated and personal data","FinOps cost attribution per domain and workload"]}}[p.residency];
+  const path={
+   legacy:["Coexist, then offload","Keep the warehouse for certified and regulatory reporting during transition. Land new sources, history and unstructured data in the lakehouse, offload cold data and heavy ETL, retire marts, then migrate the remaining subject areas as support contracts expire."],
+   hadoop:["Modernize the lake in place","Convert Hive tables to an open table format, move from HDFS to object storage, retire legacy batch engines, and add the catalog and policy layer the original lake lacked."],
+   cloudDW:["Extend to an open lakehouse","Keep the cloud warehouse for curated analytics and add open-table storage for semi-structured, unstructured and AI data, with a shared semantic layer and catalog."],
+   ops:["Build the foundation right the first time","Skip a classic warehouse build. Start with a governed landing zone and lakehouse, model core domains (Data Vault core, dimensional marts) and certify the first KPIs early."],
+   mixed:["Consolidate onto one governed lakehouse","Unify catalog and access policy across the estate first, rationalize overlapping marts, then migrate domain by domain."]}[p.platform];
+  return{...base,path}}
+function mdmStyle(){
+  const m=dScore(DMAP.MDM);if(m==null)return null;
+  if(m<2)return["Registry, moving to consolidation","Start with the customer/party domain. Index and match records across systems (registry), then build a consolidated golden record for analytics, risk and agents without changing source systems yet."];
+  if(m<3.5)return["Coexistence","Golden record managed in the hub and synchronized back to source systems for core domains. Typical for banks and telcos where several channels create customer data."];
+  return["Centralized (transactional) for core domains","Create and maintain core entities directly in the hub, with source systems subscribing to changes through APIs or events."]}
+function regLens(){
+  const p=S.profile,L=[];
+  const R={
+   eg:["Egypt PDPL","Law No. 151 of 2020. Executive Regulations issued by Ministerial Decision No. 816/2025 (dated 1 November 2025), with a one-year grace period, so enforcement is expected from about 1 November 2026. Key duties: controller/processor licensing, a DPO registered with the Personal Data Protection Centre, breach notification to the Centre within 72 hours, and licences for cross-border transfers, including cloud."],
+   sa:["Saudi PDPL","Fully enforceable since 14 September 2024. SDAIA opened consultation in October 2026 on draft amendments that would require notifying SDAIA of breaches within 72 hours regardless of likely harm and introduce in-Kingdom storage of personal data (draft, subject to change)."],
+   ae:["UAE PDPL","Federal Decree-Law No. 45 of 2021, overseen by the UAE Data Office. Executive regulations are reported as still pending in 2026. DIFC and ADGM free zones run their own data protection regimes."],
+   gcc:["National data protection law","Apply the data protection law and sector regulator rules of each operating country."],
+   other:["Data protection law","Apply the national data protection law and sector regulation that cover the organization."]}[p.region];
+  L.push(R);
+  if(p.region==="sa")L.push(["NDMO standards (KSA)","National Data Management and Personal Data Protection Standards: 15 domains with controls prioritized P1–P3, mandatory for public entities and widely used as a benchmark. Domains map closely to this assessment."]);
+  if(p.region==="eg"&&isBank())L.push(["Central Bank of Egypt","Outsourcing providers that handle customer data, including cloud providers, must be registered with the CBE and bound by the bank's confidentiality obligations."]);
+  if(isBank())L.push(["BCBS 239","14 principles for risk data aggregation and reporting, covering governance and infrastructure, aggregation capabilities, reporting practices and supervisory review. Mapped as P1–P14 in the matrix."]);
+  L.push(["EDM Council CDMC","14 key controls for sensitive data in cloud and hybrid environments, from ownership and sovereignty to lineage and cost metrics. Mapped as CDMC 1–14."]);
+  L.push(["AI management","ISO/IEC 42001 (Annex A.7: data for AI systems, covering acquisition, quality, provenance and preparation), NIST AI RMF 1.0 with the AI 600-1 generative AI profile, and ISO/IEC 5259 for data quality in analytics and ML."]);
+  L.push(["EU AI Act (if EU exposure)","Article 10 sets data governance duties for high-risk systems. The 2026 Digital Omnibus moves Annex III high-risk obligations to 2 December 2027."]);
+  return L}
+function tagView(m){
+  const p=S.profile;
+  if(/^NDMO/.test(m)&&p.region!=="sa")return null;
+  if(/^BCBS/.test(m)&&!isBank())return null;
+  if(m==="PDPL")return{t:{eg:"Egypt PDPL",sa:"Saudi PDPL",ae:"UAE PDPL",gcc:"National PDPL",other:"Data protection law"}[p.region],reg:1};
+  return{t:m,reg:/BCBS|NDMO|EU AI Act/.test(m)}}
+function tags(q){return q.m.map(tagView).filter(Boolean)}
+
+/* =================== rendering =================== */
+const $=s=>document.querySelector(s);
+function render(){renderRail();renderMain();renderNav();save()}
+function renderRail(){
+  const c=[`<button class="chip ${S.step===0?"on":""} ${S.profile.org?"done":""}" data-go="0"><span class="dot"></span>Profile</button>`];
+  DOMAINS.forEach((d,i)=>{const a=answered(d);c.push(`<button class="chip ${S.step===i+1?"on":""} ${a===d.qs.length?"done":a?"part":""}" data-go="${i+1}"><span class="dot"></span>${esc(d.short)}</button>`)});
+  c.push(`<button class="chip ${S.step===STEPS-1?"on":""}" data-go="${STEPS-1}"><span class="dot"></span>Results</button>`);
+  $("#rail").innerHTML=c.join("");const on=$("#rail .on");if(on)on.scrollIntoView({block:"nearest",inline:"center"})}
+function renderNav(){
+  const n=totalAnswered(),T=ALLQ.length;
+  const left=S.step>0?`<button class="btn ghost" data-go="${S.step-1}">Back</button>`:"<span></span>";
+  let right;
+  if(S.step===0)right=`<button class="btn primary" data-go="1">Start assessment</button>`;
+  else if(S.step<STEPS-2)right=`<button class="btn primary" data-go="${S.step+1}">Next domain</button>`;
+  else if(S.step===STEPS-2)right=`<button class="btn primary" data-go="${STEPS-1}">See results</button>`;
+  else right=`<button class="btn primary" data-act="copy" data-kind="report">Copy report</button>`;
+  $("#navbar").innerHTML=`${left}<div class="prog"><span><span class="num">${n}/${T}</span> capabilities scored</span><div class="bar"><i style="width:${(n/T*100).toFixed(1)}%"></i></div></div>${right}`}
+function renderMain(){const m=$("#main");m.innerHTML=S.step===0?viewProfile():S.step<STEPS-1?viewDomain(DOMAINS[S.step-1],S.step):viewResults()}
+function sel(id,arr,v){return`<select id="pf-${id}" data-pf="${id}">${arr.map(a=>`<option value="${a[0]}" ${a[0]==v?"selected":""}>${esc(a[1])}</option>`).join("")}</select>`}
+function legendHTML(){return`<div class="legend">${LEVELS.map((l,k)=>`<span><b class="num">${k} ${l}.</b> ${LEVEL_DEF[k]}</span>`).join("")}</div>`}
+
+function viewProfile(){
+  const p=S.profile;
+  return `${S.sample?`<div class="sample">Example data is loaded (a fictional Egyptian bank). Clear it before assessing a real client.</div>`:""}
+  <div class="grid21">
+   <section class="panel"><div class="eyebrow">Engagement approach</div><h3>${DOMAINS.length} domains, ${ALLQ.length} capabilities, scored with evidence</h3>
+    <ol class="steps">
+     <li><span class="k">Week 1</span><span><b>Mobilize.</b> Confirm scope and sponsors, complete this profile, and send the evidence request (listed under every capability).</span></li>
+     <li><span class="k">Weeks 2–3</span><span><b>Domain workshops.</b> Score each capability with the roles named per domain. Record the confidence of each score and any evidence seen.</span></li>
+     <li><span class="k">Week 4</span><span><b>Validate and calibrate.</b> Review evidence for every score of 3 or above, resolve "Unsure" answers and adjust targets and importance with the sponsor.</span></li>
+     <li><span class="k">Week 5</span><span><b>Readout.</b> Present the gap matrix, readiness gates, initiative portfolio and 24-month roadmap. Re-assess every six months.</span></li>
+    </ol></section>
+   <section class="panel"><div class="eyebrow">Shortcuts</div><h3>Start a client assessment or review an example</h3>
+    <p class="lead">Answers are saved in this browser only, so a workshop can be paused and resumed on the same device.</p>
+    <div class="btns"><button class="btn" data-act="sample">View example results</button><button class="btn warn" data-act="reset" id="resetBtn">Clear all answers</button></div>
+    <p class="hint">Scoring rule: choose the highest level that is fully met. Levels 3 and above should be backed by evidence.</p></section>
+  </div>
+  <section class="step-head"><div class="eyebrow">Step 1 of ${STEPS}</div><h2>Organization profile</h2><p class="lead">The profile sets target maturity, domain importance, the regulatory lens and the recommended architecture.</p></section>
+  <div class="form">
+   <div class="field"><label for="pf-org">Organization</label><input id="pf-org" data-pf="org" value="${esc(p.org)}" placeholder="Client name"></div>
+   <div class="field"><label for="pf-assessor">Assessed by</label><input id="pf-assessor" data-pf="assessor" value="${esc(p.assessor)}" placeholder="Consultant name"></div>
+   <div class="field"><label for="pf-industry">Industry</label>${sel("industry",INDUSTRIES,p.industry)}</div>
+   <div class="field"><label for="pf-region">Primary jurisdiction</label>${sel("region",REGIONS,p.region)}</div>
+   <div class="field"><label for="pf-size">Organization size</label>${sel("size",SIZES,p.size)}</div>
+   <div class="field"><label for="pf-sources">Source system landscape</label>${sel("sources",SOURCES,p.sources)}</div>
+   <div class="field"><label for="pf-residency">Data residency constraint</label>${sel("residency",RESIDENCY,p.residency)}</div>
+   <div class="field"><label for="pf-platform">Current primary data platform</label>${sel("platform",PLATFORMS,p.platform)}</div>
+   <div class="field"><label for="pf-ambition">Target ambition (24 months)</label>${sel("ambition",AMBITION,p.ambition)}</div>
+   <div class="field"><label for="pf-date">Assessment date</label><input id="pf-date" type="date" data-pf="date" value="${esc(p.date)}"></div>
+   <div class="field full"><span class="lbl">Strategic priorities (raise target and importance for related domains)</span>
+    <div class="checks">${PRIOS.map(x=>`<button class="tog" data-act="prio" data-v="${x[0]}" aria-pressed="${p.prios.includes(x[0])}">${esc(x[1])}</button>`).join("")}</div></div>
+   <div class="field"><label for="pf-usecases">Planned AI and agent use cases</label><textarea id="pf-usecases" data-pf="usecases" placeholder="e.g., credit memo assistant, AML alert triage, customer service agent">${esc(p.usecases)}</textarea></div>
+   <div class="field"><label for="pf-tools">Current data and AI tools</label><textarea id="pf-tools" data-pf="tools" placeholder="Warehouse, ETL, BI, catalog, MDM, AI platforms in use">${esc(p.tools)}</textarea></div>
+  </div>`}
+
+function viewDomain(d,i){
+  return `<section class="step-head">
+   <div class="eyebrow">Domain ${i} of ${DOMAINS.length} · ${LAYER[d.layer]} layer · target ${dTarget(d)} · importance ${IMPN[dImp(d)]}</div>
+   <h2>${esc(d.name)}</h2><p class="lead">${esc(d.intro)}</p>
+   <p class="who"><b>Score with:</b> ${esc(d.who)}</p>
+   <div class="refs">${d.refs.map(r=>`<span class="ref">${esc(r)}</span>`).join("")}</div>
+   <div class="why"><b>Why it matters for agentic AI.</b> ${esc(d.why)}</div>
+  </section>
+  ${i===1?legendHTML():`<details class="panel"><summary>Maturity scale definitions</summary>${legendHTML()}</details>`}
+  <div class="qs">${d.qs.map(q=>viewQ(q)).join("")}</div>`}
+function viewQ(q){
+  const v=S.ans[q.id],c=S.conf[q.id]||"I";
+  return `<article class="q ${v!=null?"answered":""}" id="q-${q.id}">
+   <div class="qt"><span class="num">${q.id}</span><span>${esc(q.t)}</span></div>
+   <div class="anchors"><div><b>Level 1</b>${esc(q.l1)}</div><div><b>Level 3</b>${esc(q.l3)}</div><div><b>Level 5</b>${esc(q.l5)}</div></div>
+   <p class="ev"><b>Evidence to request:</b> ${esc(q.ev)}</p>
+   <div class="refs">${tags(q).map(t=>`<span class="ref ${t.reg?"reg":""}">${esc(t.t)}</span>`).join("")}</div>
+   <div class="scale" role="group" aria-label="Maturity score for ${q.id}">${LEVELS.map((l,n)=>`<button class="sb" data-act="ans" data-q="${q.id}" data-v="${n}" aria-pressed="${v===n}" aria-label="${n} ${l}"><span class="num">${n}</span><small>${l}</small></button>`).join("")}</div>
+   <div class="alt">
+    <button class="tog" data-act="ans" data-q="${q.id}" data-v="u" aria-pressed="${v==="u"}">Unsure</button>
+    <button class="tog" data-act="ans" data-q="${q.id}" data-v="na" aria-pressed="${v==="na"}">Not applicable</button>
+    <span class="sep"></span>
+    <span class="conf">Confidence:</span>${Object.entries(CONF).map(([k,l])=>`<button class="tog" data-act="conf" data-q="${q.id}" data-v="${k}" aria-pressed="${c===k}">${l}</button>`).join("")}
+   </div>
+   <input class="note" id="note-${q.id}" data-note="${q.id}" value="${esc(S.notes[q.id]||"")}" placeholder="Evidence seen, comment or follow-up (optional)">
+  </article>`}
+
+/* ---------- charts ---------- */
+function radarSVG(){
+  const n=DOMAINS.length,cx=280,cy=230,R=150;
+  const pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+Math.cos(a)*r,cy+Math.sin(a)*r]};
+  let g="";
+  for(let L=1;L<=5;L++)g+=`<polygon points="${DOMAINS.map((_,i)=>pt(i,R*L/5).map(x=>x.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="var(--line)"/>`;
+  DOMAINS.forEach((d,i)=>{const[x,y]=pt(i,R);g+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--line)"/>`;
+    const[lx,ly]=pt(i,R+18);const anc=Math.abs(lx-cx)<10?"middle":lx>cx?"start":"end";
+    g+=`<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" text-anchor="${anc}">${esc(d.short)}</text>`});
+  for(let L=1;L<=5;L++)g+=`<text x="${cx+4}" y="${cy-R*L/5+4}" style="font-size:10px">${L}</text>`;
+  const tg=DOMAINS.map((d,i)=>pt(i,R*dTarget(d)/5).map(x=>x.toFixed(1)).join(",")).join(" ");
+  const cu=DOMAINS.map((d,i)=>pt(i,R*(dScore(d)||0)/5).map(x=>x.toFixed(1)).join(",")).join(" ");
+  g+=`<polygon points="${tg}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="6 4"/>`;
+  g+=`<polygon points="${cu}" fill="var(--series)" fill-opacity=".18" stroke="var(--series)" stroke-width="2.5"/>`;
+  DOMAINS.forEach((d,i)=>{const[x,y]=pt(i,R*(dScore(d)||0)/5);g+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="var(--series)"/>`});
+  return `<svg viewBox="0 0 560 460" role="img" aria-label="Current versus target maturity by domain">${g}</svg>`}
+function matrixSVG(list){
+  const W=560,H=360,L=60,T=20,Rr=20,B=50,w=W-L-Rr,h=H-T-B;
+  const maxP=Math.max(...list.map(i=>i.p),1);
+  const ex={L:0,M:1,H:2};
+  let g=`<rect x="${L}" y="${T}" width="${w}" height="${h}" fill="var(--surface2)" rx="6"/>`;
+  g+=`<line x1="${L+w/2}" y1="${T}" x2="${L+w/2}" y2="${T+h}" stroke="var(--line)" stroke-width="2"/><line x1="${L}" y1="${T+h/2}" x2="${L+w}" y2="${T+h/2}" stroke="var(--line)" stroke-width="2"/>`;
+  g+=`<text x="${L+10}" y="${T+18}" style="font-weight:700">Quick wins</text><text x="${L+w-10}" y="${T+18}" text-anchor="end" style="font-weight:700">Strategic programs</text><text x="${L+10}" y="${T+h-10}">Fill-ins</text><text x="${L+w-10}" y="${T+h-10}" text-anchor="end">Defer or bundle</text>`;
+  g+=`<text x="${L+w/2}" y="${H-12}" text-anchor="middle">Effort →</text><text transform="translate(18 ${T+h/2}) rotate(-90)" text-anchor="middle">Impact (weighted gap) →</text>`;
+  ["Low","Medium","High"].forEach((t,k)=>g+=`<text x="${L+w*(k*2+1)/6}" y="${T+h+18}" text-anchor="middle" style="font-size:11px">${t}</text>`);
+  const slots={};
+  list.forEach(i=>{const k=ex[i.eff];slots[k]=(slots[k]||0)+1;const off=((slots[k]-1)%4-1.5)*22;
+    const x=L+w*(k*2+1)/6+off;const y=T+h-12-(h-30)*(i.p/maxP);
+    g+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="13" fill="var(--p${i.phase})" stroke="var(--surface)" stroke-width="2"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" style="font-size:10px;font-weight:700;fill:var(--surface)">${i.id.slice(1)}</text>`});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Initiatives by impact and effort">${g}</svg>`}
+function ganttSVG(list){
+  const LW=230,W=900,row=30,T=40,H=T+list.length*row+20,mw=(W-LW-10)/24;
+  let g="";
+  [[0,6,"Phase 1 · Mobilize & govern"],[6,12,"Phase 2 · Modernize"],[12,24,"Phase 3 · Scale to agentic"]].forEach(([a,b,t],k)=>{
+    g+=`<rect x="${LW+a*mw}" y="${T-26}" width="${(b-a)*mw}" height="${H-T+20}" fill="var(--p${k+1})" fill-opacity=".07"/>`;
+    g+=`<text x="${LW+a*mw+6}" y="${T-12}" style="font-size:12px;font-weight:700;fill:var(--ink)">${t}</text>`});
+  for(let m=0;m<=24;m+=3){g+=`<line x1="${LW+m*mw}" y1="${T-4}" x2="${LW+m*mw}" y2="${H-14}" stroke="var(--line)"/><text x="${LW+m*mw}" y="${H-2}" text-anchor="middle" style="font-size:11px">M${m}</text>`}
+  list.forEach((i,k)=>{const y=T+k*row;
+    g+=`<text x="${LW-8}" y="${y+18}" text-anchor="end" style="font-size:12.5px;fill:var(--ink)">${esc(i.id+" "+i.name)}</text>`;
+    g+=`<rect x="${LW+i.start*mw+1}" y="${y+5}" width="${Math.max(6,(i.end-i.start)*mw-2)}" height="${row-10}" rx="4" fill="var(--p${i.phase})"/>`;
+    g+=`<text x="${LW+i.start*mw+8}" y="${y+19}" style="font-size:11px;font-weight:700;fill:var(--surface)">${i.end-i.start} mo · ${SEVN[i.sev]}</text>`});
+  return `<svg viewBox="0 0 ${W} ${H}" style="min-width:760px" role="img" aria-label="24-month initiative roadmap">${g}</svg>`}
+
+/* ---------- results ---------- */
+function viewResults(){
+  const n=totalAnswered();
+  if(n===0)return `<section class="step-head"><div class="eyebrow">Results</div><h2>No scores yet</h2><p class="lead">Score at least one domain to generate the gap analysis, or open the example to see a complete report.</p><div class="btns"><button class="btn primary" data-go="1">Start with Strategy</button><button class="btn" data-act="sample">View example results</button></div></section>`;
+  const p=S.profile,gs=gates(),st=stage(gs),P=plan(),G=P.G;
+  const scored=DOMAINS.filter(d=>dScore(d)!=null);
+  const overall=scored.reduce((s,d)=>s+dScore(d),0)/scored.length;
+  const tgtAvg=DOMAINS.reduce((s,d)=>s+dTarget(d),0)/DOMAINS.length;
+  const crit=G.filter(x=>x.sev==="crit").length,high=G.filter(x=>x.sev==="high").length;
+  const scoredQ=ALLQ.filter(q=>S.ans[q.id]!=null&&S.ans[q.id]!=="na");
+  const verified=scoredQ.filter(q=>(S.conf[q.id]||"I")==="V").length;
+  const toValidate=ALLQ.filter(q=>(typeof S.ans[q.id]==="number"&&S.ans[q.id]>=3&&(S.conf[q.id]||"I")!=="V")||S.ans[q.id]==="u");
+  const head=`${S.sample?`<div class="sample">Example results for a fictional Egyptian bank. Clear the answers on the Profile step before a real assessment.</div>`:""}
+  <section class="step-head"><div class="eyebrow">Results · ${esc(p.date)}${p.assessor?" · "+esc(p.assessor):""}</div>
+   <h2>${esc(p.org||"Your organization")}: gap analysis &amp; modernization roadmap</h2>
+   <p class="lead">${esc(lbl(INDUSTRIES,p.industry))} · ${esc(lbl(REGIONS,p.region))} · ${n} of ${ALLQ.length} capabilities scored · ${toValidate.length} score${toValidate.length===1?"":"s"} to validate with evidence</p></section>
+  <div class="tabs" role="tablist">${[["sum","Summary"],["mx","Gap matrix"],["ini","Initiatives"],["rd","Roadmap"],["mt","Method"]].map(t=>`<button class="tab" role="tab" data-act="tab" data-v="${t[0]}" aria-selected="${S.tab===t[0]}">${t[1]}</button>`).join("")}</div>`;
+  let body="";
+  if(S.tab==="sum"){
+    const byGap=[...scored].sort((a,b)=>(dTarget(b)-dScore(b))*dImp(b)-(dTarget(a)-dScore(a))*dImp(a));
+    const strongest=[...scored].sort((a,b)=>dScore(b)-dScore(a))[0];
+    const ar=archetype(),ms=mdmStyle(),ri=readiness(gs);
+    const firstInits=P.list.filter(i=>i.phase===1).map(i=>i.name.toLowerCase());
+    body=`<div class="kpis">
+     <div class="kpi"><span class="v">${f1(overall)}<small> / 5</small></span><span class="l">Current maturity</span></div>
+     <div class="kpi"><span class="v">${f1(tgtAvg)}<small> / 5</small></span><span class="l">Target maturity</span></div>
+     <div class="kpi"><span class="v">${ri}<small>%</small></span><span class="l">Agentic readiness index</span></div>
+     <div class="kpi"><span class="v"><span style="color:var(--crit)">${crit}</span><small> · </small><span style="color:var(--high)">${high}</span></span><span class="l">Critical · High gaps</span></div>
+     <div class="kpi"><span class="v">${scoredQ.length?Math.round(verified/scoredQ.length*100):0}<small>%</small></span><span class="l">Scores verified with evidence</span></div></div>
+    <section class="panel"><div class="eyebrow">Executive summary</div>
+     <p>${esc(p.org||"The organization")} scores <b class="num">${f1(overall)}</b> against a target of <b class="num">${f1(tgtAvg)}</b>.${strongest?` The strongest domain is ${esc(strongest.name)} (<span class="num">${f1(dScore(strongest))}</span>).`:""} The largest importance-weighted gaps are in ${esc(byGap.slice(0,3).map(d=>d.name).join(", "))}.</p>
+     <p>Agentic AI stage: <b>${st.t}</b> (readiness index ${ri}%). ${G.length} capability gaps group into ${P.list.length} initiatives over 24 months.${firstInits.length?` The first six months focus on ${esc(firstInits.join(", "))}.`:""} This sequence puts owned, classified and traceable data in place before agents go into production.</p>
+     ${toValidate.length?`<p class="hint">${toValidate.length} scores (level 3+ without evidence, or unsure) should be validated before the readout.</p>`:""}</section>
+    <div class="grid21">
+     <section class="panel chart"><div class="eyebrow">Maturity profile</div>${radarSVG()}
+      <div class="lgd"><span><i style="background:var(--series)"></i>Current</span><span><i style="background:var(--gold)"></i>Target</span></div></section>
+     <section class="panel"><div class="eyebrow">Agentic AI readiness gates</div>
+      <span class="stage-pill sev ${st.c}">${st.t}</span><p class="hint" style="font-size:14px">${st.d}</p>
+      <ul class="gates">${gs.map(g=>`<li><span class="gi ${g.st}">${g.st==="pass"?"✓":g.st==="partial"?"!":"×"}</span><span>${esc(g.n)}</span><span class="num hint">${f1(g.v)}</span></li>`).join("")}</ul>
+      <p class="hint">A gate passes at level 3 (Defined), is partial at 2 and fails below 2.</p></section></div>
+    <div class="grid2">
+     <section class="panel arch"><div class="eyebrow">Recommended target architecture</div><h3>${esc(ar.t)}</h3>
+      <ul>${ar.b.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+      <p><b>Migration path: ${esc(ar.path[0])}.</b> ${esc(ar.path[1])}</p>
+      <p class="hint">Platform selection stays vendor-agnostic: shortlist products against these requirements, the residency constraint and existing investments.</p></section>
+     <section class="panel arch"><div class="eyebrow">Master data management</div>
+      ${ms?`<h3>${esc(ms[0])}</h3><p>${esc(ms[1])}</p>`:`<p class="empty">Score the MDM domain to get an implementation style.</p>`}
+      <div class="eyebrow" style="margin-top:8px">Top risks if gaps remain open</div>
+      <ul>${G.slice(0,5).map(x=>`<li><b>${x.q.id}</b> ${esc(x.q.r)}</li>`).join("")||`<li class="empty">No open gaps.</li>`}</ul></section></div>
+    <section class="panel lens"><div class="eyebrow">Regulatory &amp; standards lens</div>
+     <ul>${regLens().map(([h,t])=>`<li><b>${esc(h)}.</b> ${esc(t)}</li>`).join("")}</ul>
+     <p class="hint">Regulatory summaries reflect public sources as of October 2026 and are not legal advice. Confirm current obligations with legal counsel.</p></section>`;
+  } else if(S.tab==="mx"){
+    const rows=DOMAINS.map(d=>{const c=dScore(d),t=dTarget(d),im=dImp(d);const dg=c==null?null:Math.max(0,t-c);
+      const ds=dg==null?"none":sevOf(dg*im*1.1);const ph=P.list.filter(i=>i.items.some(x=>x.q.d===d)).map(i=>i.phase);
+      return `<tr><td><b>${esc(d.name)}</b><br><span class="hint">${LAYER[d.layer]} layer</span></td>
+       <td><span class="gapbar"><span class="track"><span class="cur" style="width:${(c||0)*20}%"></span><span class="tgt" style="left:calc(${t*20}% - 2px)"></span></span></span></td>
+       <td class="c num">${f1(c)}</td>
+       <td class="c"><select id="tgt-${d.id}" data-tgt="${d.id}" aria-label="Target for ${esc(d.name)}">${[1,2,3,4,5].map(k=>`<option ${k===t?"selected":""}>${k}</option>`).join("")}</select></td>
+       <td class="c"><select id="imp-${d.id}" data-imp="${d.id}" aria-label="Importance for ${esc(d.name)}">${[1,2,3].map(k=>`<option value="${k}" ${k===im?"selected":""}>${IMPN[k]}</option>`).join("")}</select></td>
+       <td class="c num">${dg==null?"–":f1(dg)}</td><td><span class="sev ${ds}">${c==null?"Not scored":SEVN[ds]}</span></td>
+       <td class="c num">${ph.length?"P"+Math.min(...ph):"–"}</td></tr>`}).join("");
+    const heat=DOMAINS.map(d=>`<div class="hrow"><span>${esc(d.short)}</span><span class="hcells">${d.qs.map(q=>{const a=S.ans[q.id];if(a==null)return`<span class="hc nil" title="${q.id} not scored">${q.id.split("-")[1]}</span>`;if(a==="na")return`<span class="hc na" title="${q.id} not applicable">–</span>`;const g=Math.max(0,dTarget(d)-val(q.id));return`<span class="hc g${Math.min(3,g)}" title="${q.id}: ${val(q.id)} vs target ${dTarget(d)}">${q.id.split("-")[1]}</span>`}).join("")}</span><span class="num hint">${f1(dScore(d))}</span></div>`).join("");
+    const fl=S.filter,df=S.dfilter,list=G.filter(x=>(fl==="all"||x.sev===fl)&&(df==="all"||x.q.d.id===df));
+    body=`<section style="display:flex;flex-direction:column;gap:8px"><div class="eyebrow">Domain gap matrix</div>
+     <div class="tbl-wrap"><table><thead><tr><th>Domain</th><th>Current vs target</th><th>Current</th><th>Target</th><th>Importance</th><th>Gap</th><th>Severity</th><th>Starts</th></tr></thead><tbody>${rows}</tbody></table></div>
+     <p class="hint">Targets and importance are derived from the profile. Adjust them here with the sponsor; every view updates.</p></section>
+    <section class="panel"><div class="eyebrow">Capability heatmap (gap to target)</div>
+     <div class="lgd"><span><i style="background:var(--low)"></i>At target</span><span><i style="background:var(--med)"></i>1 level</span><span><i style="background:var(--high)"></i>2 levels</span><span><i style="background:var(--crit)"></i>3+ levels</span><span><i style="background:var(--surface2)"></i>Not scored</span></div>
+     <div class="heat">${heat}</div></section>
+    <section style="display:flex;flex-direction:column;gap:10px"><div class="eyebrow">Capability gap matrix · ${G.length} gaps ranked by priority score</div>
+     <div class="filters">${[["all","All"],["crit","Critical"],["high","High"],["med","Medium"],["low","Low"]].map(f=>`<button class="tog" data-act="filter" data-v="${f[0]}" aria-pressed="${fl===f[0]}">${f[1]} <span class="num">${f[0]==="all"?G.length:G.filter(x=>x.sev===f[0]).length}</span></button>`).join("")}
+      <select id="dfilter" data-dfilter="1" aria-label="Filter by domain"><option value="all">All domains</option>${DOMAINS.map(d=>`<option value="${d.id}" ${df===d.id?"selected":""}>${esc(d.short)}</option>`).join("")}</select>
+      <button class="btn sm" data-act="copy" data-kind="csv">Copy matrix for Excel</button></div>
+     <div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Capability</th><th>Now</th><th>Target</th><th>Score</th><th>Severity</th><th>Risk if unaddressed</th><th>Recommendation</th><th>Initiative</th><th>Effort</th><th>Confidence</th><th>Frameworks</th></tr></thead><tbody>
+     ${list.length?list.map(x=>`<tr><td class="num">${x.q.id}</td><td class="wide">${esc(x.q.t)}${S.notes[x.q.id]?`<br><span class="hint">Note: ${esc(S.notes[x.q.id])}</span>`:""}</td><td class="c num">${x.unsure?"?":x.cur}</td><td class="c num">${x.t}</td><td class="c num">${f1(x.p)}</td><td><span class="sev ${x.sev}">${SEVN[x.sev]}</span></td><td class="wide">${esc(x.q.r)}</td><td class="wide">${esc(x.q.a)}</td><td class="num">${x.init}</td><td>${EFFN[x.q.e]}</td><td>${x.unsure?"Unsure":CONF[x.conf]}</td><td style="min-width:170px">${tags(x.q).map(t=>esc(t.t)).join("; ")}</td></tr>`).join(""):`<tr><td colspan="12" class="empty">No gaps match this filter.</td></tr>`}
+     </tbody></table></div></section>`;
+  } else if(S.tab==="ini"){
+    const L=[...P.list].sort((a,b)=>b.p-a.p);
+    body=`<div class="grid21">
+     <section class="panel chart"><div class="eyebrow">Impact / effort matrix</div>${L.length?matrixSVG(L):`<p class="empty">No open gaps.</p>`}
+      <div class="lgd"><span><i style="background:var(--p1)"></i>Starts in phase 1</span><span><i style="background:var(--p2)"></i>Phase 2</span><span><i style="background:var(--p3)"></i>Phase 3</span></div></section>
+     <section class="panel"><div class="eyebrow">How initiatives are formed</div>
+      <p>Each capability gap rolls up into one of ${INITS.length} standard initiatives. An initiative is active when at least one of its capabilities is below target. Its impact is the sum of the priority scores of its open gaps; its start date follows its dependencies.</p>
+      <ul class="qw">${L.map(i=>`<li><span class="num hint">${i.id}</span><span>${esc(i.name)} · <span class="num">${f1(i.p)}</span></span></li>`).join("")}</ul></section></div>
+    <div class="inits">${L.map(i=>`<article class="init"><div class="eyebrow">${i.id} · Phase ${i.phase} · M${i.start}–M${i.end}</div><h3>${esc(i.name)}</h3>
+     <div class="row"><span><b>Owner</b> ${esc(i.owner)}</span><span><b>Effort</b> ${EFFN[i.eff]}</span><span><b>Impact</b> <span class="num">${f1(i.p)}</span></span><span class="sev ${i.sev}">${SEVN[i.sev]}</span></div>
+     <div class="row"><span><b>Depends on</b> ${i.deps.filter(d=>P.act[d]).map(d=>d+" "+IMAP[d].name).join("; ")||"None"}</span></div>
+     <div class="sub">Closes gaps</div><div class="refs">${i.items.map(x=>`<span class="ref">${x.q.id} · ${x.cur}→${x.t}</span>`).join("")}</div>
+     <div class="sub">Key deliverables</div><ul>${i.del.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+     <div class="sub">Success KPIs</div><ul>${i.kpi.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></article>`).join("")||`<p class="empty">No open gaps, so no initiatives are required.</p>`}</div>`;
+  } else if(S.tab==="rd"){
+    const qw=G.filter(x=>x.q.e==="L"&&x.g>=2).slice(0,8);
+    body=`<p class="lead">Initiatives are scheduled by dependency: governance, security, metadata and AI governance start first; platform modernization follows; agentic enablement starts once its foundations are under way. Each phase ends with exit criteria that confirm the organization is on the right path.</p>
+     <section class="panel"><div class="eyebrow">24-month roadmap</div><div style="overflow-x:auto" class="chart">${P.list.length?ganttSVG(P.list):`<p class="empty">No open gaps.</p>`}</div></section>
+     <section class="panel"><div class="eyebrow">Quick wins · first 90 days</div>
+      <ul class="qw">${qw.map(x=>`<li><span class="sev ${x.sev}">${x.q.id}</span><span>${esc(x.q.a)}</span></li>`).join("")||`<li class="empty">No low-effort gaps of two levels or more.</li>`}</ul></section>
+     <div class="phases">${[
+      ["Phase 1 · Mobilize & govern","Months 0–6",["Owners and stewards active for critical domains","Policy set, CDE register and authoritative sources published","Classification and fine-grained access model defined","Privacy program operating (records of processing, DPO, breach process)","AI governance framework and agent inventory approved","Target architecture and platform decision signed off"]],
+      ["Phase 2 · Modernize the platform","Months 6–12",["Lakehouse in production on an open table format with layered zones","Catalog and lineage live for CDEs and regulatory reports","Quality scorecards and observability live for CDEs","Golden record live for the first master data domain","Priority pipelines on CI/CD; legacy offload under way"]],
+      ["Phase 3 · Scale to agentic","Months 12–24",["Semantic layer and governed retrieval serving agents","Agents in production only through entitlement-aware tools with full audit trail","Data products with SLAs for priority domains","All eight readiness gates passed; re-assessment scheduled"]]
+     ].map(([h,w,ex],k)=>{const its=P.list.filter(i=>i.phase===k+1);return `<section class="phase"><span class="w">${w}</span><h3>${h}</h3><span class="hint">${its.length} initiative${its.length===1?"":"s"} start: ${esc(its.map(i=>i.id).join(", ")||"none")}</span><div class="init" style="padding:0;border:0"><div class="sub">Exit criteria</div><ul>${ex.map(e=>`<li>${esc(e)}</li>`).join("")}</ul></div></section>`}).join("")}</div>
+     <section class="panel"><div class="eyebrow">Governance of the roadmap</div>
+      <p>Run the program through the data governance council with a monthly steering review. Track each initiative against its KPIs, re-score the affected capabilities when an initiative closes, and repeat the full assessment every six months to confirm the trajectory toward target.</p></section>`;
+  } else {
+    body=`<section class="panel method"><div class="eyebrow">Maturity scale</div>
+      <dl>${LEVELS.map((l,k)=>`<dt>${k} ${l}</dt><dd>${LEVEL_DEF[k]}</dd>`).join("")}</dl>
+      <p class="hint">Choose the highest level fully met. "Unsure" is scored as 1 until validated: if the people accountable cannot confirm a capability, it is not yet defined. "Not applicable" is excluded from all calculations.</p></section>
+     <div class="grid2">
+      <section class="panel method"><div class="eyebrow">Targets and priority</div>
+       <p><b>Target</b> starts from the ambition level (3, 4 or 5). Governance, security, metadata and data quality are raised to at least 4 in regulated industries, and domains linked to a chosen priority are raised to at least 4.</p>
+       <p><b>Priority score</b> = gap × domain importance (1–3) × 1.2 if the capability is an agentic readiness gate × 1.15 if it carries a regulatory obligation for this client.</p>
+       <p><b>Severity</b>: Critical ≥ 9, High ≥ 6, Medium ≥ 3, Low &gt; 0.</p></section>
+      <section class="panel method"><div class="eyebrow">Evidence and confidence</div>
+       <p><b>Verified</b>: an artifact was reviewed. <b>Interview</b>: stated by an accountable person. <b>Assumed</b>: the assessor's judgment.</p>
+       <p>Every score of 3 or above should be Verified before the readout. The summary reports the share of verified scores so the client sees how firm the baseline is.</p></section></div>
+     <section class="panel lens"><div class="eyebrow">Reference frameworks</div>
+      <ul>
+       <li><b>DAMA-DMBOK2</b> knowledge areas define the domain structure.</li>
+       <li><b>EDM Council DCAM</b> (v3: 8 components) informs strategy, governance, control environment and business data knowledge capabilities.</li>
+       <li><b>EDM Council CDMC</b> 14 key controls for sensitive data in cloud and hybrid environments.</li>
+       <li><b>BCBS 239</b> 14 principles for banks; <b>NDMO</b> 15 domains for KSA entities.</li>
+       <li><b>ISO 8000, ISO/IEC 25012 and ISO/IEC 5259</b> for data quality, including data for analytics and ML.</li>
+       <li><b>ISO/IEC 27001:2022</b> for security controls; <b>ISO/IEC 42001</b>, <b>NIST AI RMF 1.0 / AI 600-1</b> and the <b>EU AI Act</b> for AI governance.</li>
+       <li><b>AI-ready data practice</b>: Gartner (Feb 2025) predicts that through 2026 organizations will abandon 60% of AI projects not supported by AI-ready data, and recommends active metadata, governance requirements and data observability.</li></ul>
+      <p class="hint">Framework mappings indicate alignment for orientation. This tool is not a certified DCAM, CDMC or NDMO assessment.</p></section>`;
+  }
+  return head+body+`<p class="disclaimer">ISYS provides this assessment as an advisory aid. Results are indicative and depend on the answers and evidence provided. They do not constitute legal, regulatory or audit opinion. Validate findings through a formal consultancy engagement, with stakeholder interviews and artifact review, before investment or regulatory decisions.</p><div id="copyOut"></div>`}
+
+/* =================== exports =================== */
+function reportText(){
+  const p=S.profile,gs=gates(),st=stage(gs),P=plan(),G=P.G,ar=archetype(),ms=mdmStyle();
+  const L=[];
+  L.push("DATA MODERNIZATION & AGENTIC READINESS ASSESSMENT",`${p.org||"Organization"} | ${lbl(INDUSTRIES,p.industry)} | ${lbl(REGIONS,p.region)} | ${p.date}${p.assessor?" | Assessed by "+p.assessor:""}`,"");
+  if(p.usecases)L.push("Planned AI use cases: "+p.usecases,"");
+  L.push("DOMAIN SCORES (current / target / importance)");
+  DOMAINS.forEach(d=>L.push(`- ${d.name}: ${f1(dScore(d))} / ${dTarget(d)} / ${IMPN[dImp(d)]}`));
+  L.push("",`AGENTIC STAGE: ${st.t} (readiness index ${readiness(gs)}%)`);gs.forEach(g=>L.push(`- [${g.st.toUpperCase()}] ${g.n} (${f1(g.v)})`));
+  L.push("",`TARGET ARCHITECTURE: ${ar.t}`,`Migration path: ${ar.path[0]}. ${ar.path[1]}`);
+  if(ms)L.push(`MDM style: ${ms[0]}`);
+  L.push("","TOP GAPS");G.slice(0,15).forEach((x,k)=>L.push(`${k+1}. ${x.q.id} [${SEVN[x.sev]}] now ${x.cur}, target ${x.t}. Risk: ${x.q.r} Action: ${x.q.a} (${x.init})`));
+  L.push("","INITIATIVE ROADMAP");P.list.forEach(i=>L.push(`- ${i.id} ${i.name}: M${i.start}-M${i.end}, phase ${i.phase}, owner ${i.owner}, closes ${i.items.length} gaps`));
+  L.push("","Indicative assessment. Validate through a formal consultancy engagement before investment or regulatory decisions.");
+  return L.join("\n")}
+function csvText(){
+  const q=s=>`"${String(s??"").replace(/"/g,'""')}"`;
+  const rows=[["ID","Domain","Capability","Current","Target","Gap","Priority score","Severity","Risk if unaddressed","Recommendation","Initiative","Phase","Effort","Confidence","Frameworks","Note"]];
+  const P=plan();
+  P.G.forEach(x=>rows.push([x.q.id,x.q.d.name,x.q.t,x.unsure?"Unsure":x.cur,x.t,x.g,f1(x.p),SEVN[x.sev],x.q.r,x.q.a,x.init+" "+IMAP[x.init].name,P.act[x.init]?"P"+P.act[x.init].phase:"",EFFN[x.q.e],x.unsure?"Unsure":CONF[x.conf],tags(x.q).map(t=>t.t).join("; "),S.notes[x.q.id]||""]));
+  return rows.map(r=>r.map(q).join("\t")).join("\n")}
+
+/* =================== sample =================== */
+function loadSample(){
+  S=blank();S.sample=true;
+  Object.assign(S.profile,{org:"Example Bank (fictional)",assessor:"ISYS Advisory",industry:"bank",region:"eg",size:"l",sources:"l",residency:"strict",platform:"legacy",ambition:4,prios:["reg","c360","agentic"],usecases:"Credit memo assistant; AML alert triage; customer service agent",tools:"Legacy EDW appliance, ETL suite, BI dashboards, no catalog or MDM"});
+  const base={STR:2,GOV:2,MDM:1,MET:1,DQ:2,ARC:2,INT:2,DWH:3,LKH:1,SEC:3,OPS:2,ANA:2,AGT:1};
+  const jit=[0,1,-1,0,1,-1,0];
+  DOMAINS.forEach((d,k)=>d.qs.forEach((q,i)=>{S.ans[q.id]=Math.max(0,Math.min(5,base[d.id]+jit[(i+k)%7]));S.conf[q.id]=["I","V","I","A"][(i+k)%4]}));
+  S.ans["AGT-04"]=2;S.ans["SEC-02"]=2;S.ans["SEC-06"]=1;S.ans["MET-03"]="u";
+  S.notes["MDM-01"]="Customer exists in core banking, cards and CRM with no shared identifier.";
+  S.notes["SEC-06"]="DPO not yet registered; PDPL enforcement expected from November 2026.";
+  S.step=STEPS-1;S.tab="sum"}
+
+/* =================== events =================== */
+let resetArmed=false;
+function setAns(q,v){S.ans[q]=S.ans[q]===v?undefined:v;if(S.ans[q]===undefined)delete S.ans[q]}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.go!=null){S.step=+b.dataset.go;render();window.scrollTo({top:0});return}
+  const a=b.dataset.act,q=b.dataset.q;
+  if(a==="ans"){let v=b.dataset.v;v=(v==="u"||v==="na")?v:+v;setAns(q,v);
+    const card=document.getElementById("q-"+q);
+    card.querySelectorAll("[data-act=ans]").forEach(x=>{const xv=x.dataset.v;x.setAttribute("aria-pressed",S.ans[q]===((xv==="u"||xv==="na")?xv:+xv))});
+    card.classList.toggle("answered",S.ans[q]!=null);renderRail();renderNav();save();return}
+  if(a==="conf"){S.conf[q]=b.dataset.v;document.querySelectorAll(`#q-${CSS.escape(q)} [data-act=conf]`).forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===S.conf[q]));save();return}
+  if(a==="prio"){const v=b.dataset.v,ps=S.profile.prios,i=ps.indexOf(v);i>=0?ps.splice(i,1):ps.push(v);b.setAttribute("aria-pressed",i<0);save();return}
+  if(a==="tab"){S.tab=b.dataset.v;renderMain();save();return}
+  if(a==="filter"){S.filter=b.dataset.v;renderMain();save();return}
+  if(a==="sample"){loadSample();render();window.scrollTo({top:0});return}
+  if(a==="reset"){if(!resetArmed){resetArmed=true;b.textContent="Tap again to clear everything";setTimeout(()=>{resetArmed=false;const r=document.getElementById("resetBtn");if(r)r.textContent="Clear all answers"},4000);return}
+    resetArmed=false;S=blank();render();return}
+  if(a==="copy"){const csv=b.dataset.kind==="csv";const txt=csv?csvText():reportText();const orig=b.textContent;
+    const show=()=>{const o=document.getElementById("copyOut");if(!o)return;o.innerHTML=`<p class="hint">Copying is blocked here. Select the text below and copy it.</p><textarea class="copybox" id="copybox" readonly></textarea>`;const t=document.getElementById("copybox");t.value=txt;t.focus();t.select();t.scrollIntoView({block:"center"})};
+    try{navigator.clipboard.writeText(txt).then(()=>{b.textContent=csv?"Copied: paste into Excel":"Copied";setTimeout(()=>{b.textContent=orig},2000)}).catch(show)}catch(err){show()}
+    return}
+});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.pf&&t.tagName!=="SELECT"){S.profile[t.dataset.pf]=t.value;if(t.dataset.pf==="org")renderRail();save()}
+  else if(t.dataset.note){const v=t.value.trim();if(v)S.notes[t.dataset.note]=v;else delete S.notes[t.dataset.note];save()}
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.pf&&t.tagName==="SELECT"){S.profile[t.dataset.pf]=t.dataset.pf==="ambition"?+t.value:t.value;save()}
+  if(t.dataset.tgt){S.targets[t.dataset.tgt]=+t.value;renderMain();save()}
+  if(t.dataset.imp){S.imp[t.dataset.imp]=+t.value;renderMain();save()}
+  if(t.dataset.dfilter){S.dfilter=t.value;renderMain();save()}
+});
+render();
+</script>
+
+</body></html>
